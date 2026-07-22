@@ -10,6 +10,7 @@ import InputSuratMasuk from './pages/naskah/InputSuratMasuk';
 import RekapBelum from './pages/naskah/RekapBelum';
 import RekapSelesai from './pages/naskah/RekapSelesai';
 import DetailSurat from './pages/naskah/DetailSurat';
+import DelegasiPelaksana from './pages/naskah/DelegasiPelaksana';
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
           <Route path="/naskah/rekap-belum" element={<RekapBelum />} />
           <Route path="/naskah/rekap-selesai" element={<RekapSelesai />} />
           <Route path="/naskah/detail/:id" element={<DetailSurat />} />
+          <Route path="/naskah/delegasi/:id" element={<DelegasiPelaksana />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>
