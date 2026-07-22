@@ -6,6 +6,7 @@ import RekapSemua from './pages/RekapSemua';
 import RekapTerkini from './pages/RekapTerkini';
 import MasterPeserta from './pages/MasterPeserta';
 import DashboardNaskah from './pages/naskah/DashboardNaskah';
+import InputSuratMasuk from './pages/naskah/InputSuratMasuk';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
 
           {/* Modul Naskah */}
           <Route path="/naskah" element={<DashboardNaskah />} />
+          <Route path="/naskah/input-surat" element={<InputSuratMasuk />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>
