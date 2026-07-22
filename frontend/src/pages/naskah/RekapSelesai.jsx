@@ -45,7 +45,7 @@ export default function RekapSelesai() {
           placeholder="Cari nomor surat, hal, atau asal surat..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-96 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+          className="w-full md:w-96 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
         />
       </div>
 
@@ -82,12 +82,12 @@ export default function RekapSelesai() {
                     <td className="py-3 px-4 text-gray-700">{item.asalSurat}</td>
                     <td className="py-3 px-4 whitespace-nowrap">
                       <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-50 text-green-700">
-                        ✓ {formatTanggal(item.tglSelesai)}
+                      ✓ {formatTanggal(item.tglSelesai)}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-gray-700">{item.diverifikasiOleh}</td>
                     <td className="py-3 px-4 text-center">
-                      <button className="text-green-700 hover:underline text-xs font-medium">
+                      <button className="text-blue-700 hover:underline text-xs font-medium">
                         Detail
                       </button>
                     </td>

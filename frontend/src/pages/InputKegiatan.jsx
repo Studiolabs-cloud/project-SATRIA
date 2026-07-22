@@ -101,7 +101,7 @@ export default function InputKegiatan() {
               value={form.tanggalMulai}
               onChange={handleChange}
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
           <div>
@@ -111,7 +111,7 @@ export default function InputKegiatan() {
               name="tanggalSelesai"
               value={form.tanggalSelesai}
               onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
             <p className="text-xs text-gray-400 mt-1">Kosongkan jika kegiatan hanya berlangsung satu hari</p>
           </div>
@@ -129,7 +129,7 @@ export default function InputKegiatan() {
               value={form.jamMulai}
               onChange={handleChange}
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
           <div>
@@ -139,7 +139,7 @@ export default function InputKegiatan() {
               name="jamSelesai"
               value={form.jamSelesai}
               onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
         </div>
@@ -156,7 +156,7 @@ export default function InputKegiatan() {
             required
             rows={3}
             placeholder="Contoh: Rapat koordinasi dan pembahasan tindak lanjut terkait pelaksanaan program pertanahan"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
         </div>
 
@@ -172,7 +172,7 @@ export default function InputKegiatan() {
             onChange={handleChange}
             required
             placeholder="Ruang rapat, kantor instansi, hotel, aula, dll"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
         </div>
 
@@ -188,7 +188,7 @@ export default function InputKegiatan() {
             onChange={handleChange}
             required
             placeholder="Nama instansi/lembaga/perusahaan penyelenggara"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
         </div>
 
@@ -200,7 +200,7 @@ export default function InputKegiatan() {
             </label>
             <button
               type="button"
-              className="text-xs text-green-700 border border-green-700 rounded-lg px-3 py-1 hover:bg-green-50"
+              className="text-xs text-blue-700 border border-blue-700 rounded-lg px-3 py-1 hover:bg-blue-50"
             >
               Kelola Master Panitia
             </button>
@@ -211,7 +211,7 @@ export default function InputKegiatan() {
               type="checkbox"
               checked={semuaPegawai}
               onChange={toggleSemuaPegawai}
-              className="w-4 h-4 accent-green-700"
+              className="w-4 h-4 accent-blue-700"
             />
             Semua Pegawai Dinas Pertanahan Kota Batam
           </label>
@@ -223,7 +223,7 @@ export default function InputKegiatan() {
                   type="checkbox"
                   checked={pesertaTerpilih.includes(pegawai.id)}
                   onChange={() => togglePeserta(pegawai.id)}
-                  className="w-4 h-4 accent-green-700"
+                  className="w-4 h-4 accent-blue-700"
                 />
                 {pegawai.nama}
               </label>
@@ -238,7 +238,7 @@ export default function InputKegiatan() {
             type="file"
             accept=".pdf,.jpg,.jpeg,.png"
             onChange={handleFileChange}
-            className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-green-700 file:text-white hover:file:bg-green-800"
+            className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-700 file:text-white hover:file:bg-blue-800"
           />
           <p className="text-xs text-gray-400 mt-1">Format PDF, JPG, PNG. Maksimal 10 MB</p>
         </div>
@@ -252,7 +252,7 @@ export default function InputKegiatan() {
             onChange={handleChange}
             rows={2}
             placeholder="Catatan tambahan (opsional)"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
         </div>
 
@@ -260,7 +260,7 @@ export default function InputKegiatan() {
         <div className="flex gap-3 pt-2">
           <button
             type="submit"
-            className="bg-green-700 hover:bg-green-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
+            className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
           >
             Simpan Kegiatan
           </button>

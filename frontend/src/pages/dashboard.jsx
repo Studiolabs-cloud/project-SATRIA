@@ -49,7 +49,7 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-gray-800">Agenda Hari Ini</h2>
             <p className="text-gray-400 text-sm">Kegiatan yang aktif pada tanggal hari ini</p>
           </div>
-          <button className="bg-green-700 hover:bg-green-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+          <button className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
             + Tambah Kegiatan
           </button>
         </div>
@@ -91,8 +91,8 @@ function StatCard({ label, value, linkText, highlight }) {
       <button
         className={`text-sm font-medium px-3 py-1.5 rounded-lg transition ${
           highlight
-            ? 'bg-green-700 text-white hover:bg-green-800'
-            : 'text-green-700 hover:bg-green-50'
+            ? 'bg-blue-700 text-white hover:bg-blue-800'
+            : 'text-blue-700 hover:bg-blue-50'
         }`}
       >
         {linkText}

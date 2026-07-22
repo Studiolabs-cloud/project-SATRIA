@@ -53,7 +53,7 @@ export default function DashboardNaskah() {
               Surat dengan deadline yang sudah mendekati atau sudah melewati batas waktu tindak lanjut
             </p>
           </div>
-          <Link to="/naskah/rekap-belum" className="text-sm text-green-700 hover:underline whitespace-nowrap">
+          <Link to="/naskah/rekap-belum" className="text-sm text-blue-700 hover:underline whitespace-nowrap">
             Lihat Daftar Surat
           </Link>
         </div>
@@ -87,7 +87,7 @@ export default function DashboardNaskah() {
                     <td className="py-3 pr-4 text-gray-700">{item.bidangTujuan}</td>
                     <td className="py-3 pr-4 text-gray-700">{item.status}</td>
                     <td className="py-3 pr-4 text-center">
-                      <Link to={`/naskah/detail/${item.id}`} className="text-green-700 hover:underline text-xs font-medium">
+                      <Link to={`/naskah/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium">
                         Detail
                       </Link>
                     </td>

@@ -127,7 +127,7 @@ export default function RekapTerkini() {
           placeholder="Cari acara atau tempat..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
         />
         {searchTerm && (
           <button
@@ -185,7 +185,7 @@ export default function RekapTerkini() {
                       <td className="py-3 px-4 text-gray-800 font-medium max-w-xs">{item.acara}</td>
                       <td className="py-3 px-4 text-gray-700">{item.tempat}</td>
                       <td className="py-3 px-4 text-gray-700">
-                        <span className="bg-green-50 text-green-700 text-xs font-medium px-2 py-1 rounded-full">
+                        <span className="bg-blue-50 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
                           {item.peserta.length} orang
                         </span>
                       </td>
@@ -195,7 +195,7 @@ export default function RekapTerkini() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center">
-                        <button className="text-green-700 hover:underline text-xs font-medium">
+                        <button className="text-blue-700 hover:underline text-xs font-medium">
                           Detail
                         </button>
                       </td>

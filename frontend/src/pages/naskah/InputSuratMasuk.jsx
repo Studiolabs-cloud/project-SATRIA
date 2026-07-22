@@ -141,7 +141,7 @@ const confirmKembali = () => {
               value={form.tglTerima}
               onChange={handleChange}
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
           <div>
@@ -154,7 +154,7 @@ const confirmKembali = () => {
               value={form.tglSurat}
               onChange={handleChange}
               required
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
           <div>
@@ -165,7 +165,7 @@ const confirmKembali = () => {
               value={form.noSurat}
               onChange={handleChange}
               placeholder="045/DP/2026"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
         </div>
@@ -182,7 +182,7 @@ const confirmKembali = () => {
             required
             rows={2}
             placeholder="Perihal atau ringkasan isi surat"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
         </div>
 
@@ -199,7 +199,7 @@ const confirmKembali = () => {
               onChange={handleChange}
               required
               placeholder="Instansi/lembaga pengirim"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
           <div>
@@ -208,7 +208,7 @@ const confirmKembali = () => {
               name="sifat"
               value={form.sifat}
               onChange={handleChange}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
             >
               {SIFAT_OPTIONS.map((opt) => (
                 <option key={opt} value={opt}>{opt}</option>
@@ -221,7 +221,7 @@ const confirmKembali = () => {
         <div className="border border-gray-100 rounded-lg p-4">
           <div className="flex justify-between items-center mb-3">
             <label className="text-sm font-semibold text-gray-800">Berkas Utama Surat Masuk</label>
-            <span className="text-xs bg-green-50 text-green-700 px-2 py-1 rounded-full">
+            <span className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded-full">
               {fileUtama ? '1 file' : fotoTersimpan.length > 0 ? `${fotoTersimpan.length} foto tersimpan` : '0 foto tersimpan'}
             </span>
           </div>
@@ -238,9 +238,9 @@ const confirmKembali = () => {
                 type="file"
                 accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
                 onChange={handleFileUtamaChange}
-                className="w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-green-700 file:text-white file:text-xs hover:file:bg-green-800"
+                className="w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-700 file:text-white file:text-xs hover:file:bg-blue-800"
               />
-              {fileUtama && <p className="text-xs text-green-700 mt-2">✓ {fileUtama.name}</p>}
+              {fileUtama && <p className="text-xs text-blue-700 mt-2">✓ {fileUtama.name}</p>}
             </div>
 
             {/* Foto Langsung / Pilih Foto */}
@@ -253,7 +253,7 @@ const confirmKembali = () => {
                 capture="environment"
                 multiple
                 onChange={handleFotoChange}
-                className="w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-green-700 file:text-white file:text-xs hover:file:bg-green-800"
+                className="w-full text-xs text-gray-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:bg-blue-700 file:text-white file:text-xs hover:file:bg-blue-800"
               />
             </div>
           </div>
@@ -321,7 +321,7 @@ const confirmKembali = () => {
             name="deadlineTindakLanjut"
             value={form.deadlineTindakLanjut}
             onChange={handleChange}
-            className="w-full md:w-64 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full md:w-64 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
           <p className="text-xs text-gray-400 mt-1">Isi bila surat memiliki batas waktu tindak lanjut</p>
         </div>
@@ -335,7 +335,7 @@ const confirmKembali = () => {
             onChange={handleChange}
             rows={2}
             placeholder="Catatan tambahan terkait surat masuk (opsional)"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
         </div>
 
@@ -351,7 +351,7 @@ const confirmKembali = () => {
         <button
         type="button"
         onClick={handleSubmit}
-        className="bg-green-700 hover:bg-green-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
+        className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
         >
         ✅ Submit
         </button>
@@ -365,8 +365,7 @@ const confirmKembali = () => {
 </div>
      </form>
 
-      {/* Toast Notification */}
-      {/* Toast Notification */}
+        {/* Toast Notification */}
       {toast && (
         <div
           className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
@@ -374,7 +373,7 @@ const confirmKembali = () => {
           }`}
         >
           <div className="bg-gray-900 text-white px-5 py-3 rounded-lg shadow-lg flex items-center gap-3 max-w-sm">
-            <span className="text-green-400 text-lg">✓</span>
+           <span className="text-green-400 text-lg">✓</span>
             <p className="text-sm font-medium">{toast.message}</p>
           </div>
         </div>

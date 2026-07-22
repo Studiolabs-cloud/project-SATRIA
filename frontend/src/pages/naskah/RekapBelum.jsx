@@ -63,12 +63,12 @@ export default function RekapBelum() {
           placeholder="Cari nomor surat, hal, atau asal surat..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+          className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
         />
         <select
           value={filterSifat}
           onChange={(e) => setFilterSifat(e.target.value)}
-          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+          className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
         >
           <option value="">Semua Sifat</option>
           <option value="Biasa">Biasa</option>
@@ -137,7 +137,7 @@ export default function RekapBelum() {
                         </span>
                       </td>
                       <td className="py-3 px-4 text-center whitespace-nowrap">
-                        <Link to={`/naskah/detail/${item.id}`} className="text-green-700 hover:underline text-xs font-medium mr-3">
+                        <Link to={`/naskah/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium mr-3">
                           Detail
                         </Link>
                         <button className="text-blue-600 hover:underline text-xs font-medium">

@@ -84,7 +84,7 @@ const confirmDelete = () => {
         </div>
         <button
           onClick={openTambahModal}
-          className="bg-green-700 hover:bg-green-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition self-start"
+          className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition self-start"
         >
           + Tambah Peserta
         </button>
@@ -97,7 +97,7 @@ const confirmDelete = () => {
           placeholder="Cari nama atau jabatan..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-96 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+          className="w-full md:w-96 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
         />
       </div>
 
@@ -178,7 +178,7 @@ const confirmDelete = () => {
                   required
                   value={formData.nama}
                   onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
               </div>
               <div>
@@ -188,7 +188,7 @@ const confirmDelete = () => {
                   required
                   value={formData.jabatan}
                   onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
               </div>
               <div>
@@ -199,13 +199,13 @@ const confirmDelete = () => {
                   placeholder="081234567890"
                   value={formData.noWa}
                   onChange={(e) => setFormData({ ...formData, noWa: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-600"
+                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
                 />
               </div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  className="bg-green-700 hover:bg-green-800 text-white font-medium px-5 py-2 rounded-lg transition"
+                  className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-5 py-2 rounded-lg transition"
                 >
                   Simpan
                 </button>
