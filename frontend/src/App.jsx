@@ -7,6 +7,9 @@ import RekapTerkini from './pages/RekapTerkini';
 import MasterPeserta from './pages/MasterPeserta';
 import DashboardNaskah from './pages/naskah/DashboardNaskah';
 import InputSuratMasuk from './pages/naskah/InputSuratMasuk';
+import RekapBelum from './pages/naskah/RekapBelum';
+import RekapSelesai from './pages/naskah/RekapSelesai';
+
 
 function App() {
   return (
@@ -19,10 +22,12 @@ function App() {
           <Route path="/rekap-semua" element={<RekapSemua />} />
           <Route path="/rekap-terkini" element={<RekapTerkini />} />
           <Route path="/master-peserta" element={<MasterPeserta />} />
-
+          
           {/* Modul Naskah */}
           <Route path="/naskah" element={<DashboardNaskah />} />
           <Route path="/naskah/input-surat" element={<InputSuratMasuk />} />
+          <Route path="/naskah/rekap-belum" element={<RekapBelum />} />
+          <Route path="/naskah/rekap-selesai" element={<RekapSelesai />} />
         </Routes>
       </MainLayout>
     </BrowserRouter>
