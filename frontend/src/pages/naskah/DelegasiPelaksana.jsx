@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 // Data dummy pelaksana per bidang, nanti fetch dari API master pegawai
 const DUMMY_PELAKSANA = [
@@ -25,7 +26,8 @@ const DUMMY_ASSIGNMENT = {
 export default function DelegasiPelaksana() {
   const { id } = useParams();
   const navigate = useNavigate();
-
+const { user } = useAuth();
+const bisaDelegasi = ['Admin', 'Kepala Bidang'].includes(user?.role);
   const [pelaksanaTerpilih, setPelaksanaTerpilih] = useState([]);
   const [dikerjakanLangsung, setDikerjakanLangsung] = useState(false);
   const [toast, setToast] = useState(null);
@@ -85,7 +87,11 @@ export default function DelegasiPelaksana() {
             Pimpinan bidang/unit dapat memilih satu atau lebih pelaksana pada bidang/unit yang sama untuk menindaklanjuti assignment ini.
           </p>
         </div>
-
+{!bisaDelegasi && (
+  <div className="bg-yellow-50 text-yellow-800 text-sm px-4 py-2.5 rounded-lg mb-5">
+    ℹ️ Hanya Kepala Bidang atau Admin yang dapat melakukan delegasi ke pelaksana.
+  </div>
+)}
         {/* Info Assignment */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm border border-gray-100 rounded-lg p-4 mb-6">
           <div>
@@ -167,13 +173,15 @@ export default function DelegasiPelaksana() {
         </div>
 
         {/* Tombol Aksi */}
-        <div className="flex gap-3 pt-2">
-          <button
-            onClick={handleSimpanDelegasi}
-            className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
-          >
-            💾 Simpan Delegasi
-          </button>
+      <div className="flex gap-3 pt-2">
+  {bisaDelegasi && (
+    <button
+      onClick={handleSimpanDelegasi}
+      className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
+    >
+      💾 Simpan Delegasi
+    </button>
+  )}
           <button
             onClick={() => navigate(`/naskah/detail/${id}`)}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-lg transition"

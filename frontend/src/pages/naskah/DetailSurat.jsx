@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const INSTRUKSI_OPTIONS = [
   'Tanggapan dan saran',
@@ -42,7 +43,8 @@ const DUMMY_SURAT = {
 export default function DetailSurat() {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const { user } = useAuth();
+  const bisaDisposisi = ['Admin', 'Kadis', 'Sekdis'].includes(user?.role);
   const [instruksiTerpilih, setInstruksiTerpilih] = useState([]);
   const [instruksiTambahan, setInstruksiTambahan] = useState('');
   const [uraianDisposisi, setUraianDisposisi] = useState('');
@@ -146,10 +148,16 @@ export default function DetailSurat() {
 
       {/* Form Disposisi */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-lg font-bold text-gray-800 mb-1">Disposisi Surat</h2>
-        <p className="text-gray-500 text-sm mb-5">
-          Tentukan instruksi disposisi, uraian arahan, dan satu atau lebih bidang tujuan
-        </p>
+  <h2 className="text-lg font-bold text-gray-800 mb-1">Disposisi Surat</h2>
+  <p className="text-gray-500 text-sm mb-5">
+    Tentukan instruksi disposisi, uraian arahan, dan satu atau lebih bidang tujuan
+  </p>
+
+  {!bisaDisposisi && (
+    <div className="bg-yellow-50 text-yellow-800 text-sm px-4 py-2.5 rounded-lg mb-5">
+      ℹ️ Anda hanya dapat melihat detail disposisi. Hanya Admin, Kadis, atau Sekdis yang dapat mengisi disposisi.
+    </div>
+  )}
 
         {/* Instruksi Disposisi */}
         <div className="mb-5">
@@ -160,11 +168,12 @@ export default function DetailSurat() {
             {INSTRUKSI_OPTIONS.map((item) => (
               <label key={item} className="flex items-center gap-2 text-sm text-gray-700">
                 <input
-                  type="checkbox"
-                  checked={instruksiTerpilih.includes(item)}
-                  onChange={() => toggleInstruksi(item)}
-                  className="w-4 h-4 accent-blue-700"
-                />
+  type="checkbox"
+  checked={instruksiTerpilih.includes(item)}
+  onChange={() => toggleInstruksi(item)}
+  disabled={!bisaDisposisi}
+  className="w-4 h-4 accent-blue-700 disabled:opacity-50"
+/>
                 {item}
               </label>
             ))}
@@ -244,12 +253,14 @@ export default function DetailSurat() {
 
         {/* Tombol Aksi */}
         <div className="flex gap-3">
-          <button
-            onClick={handleSimpanDisposisi}
-            className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
-          >
-            💾 Simpan Disposisi
-          </button>
+  {bisaDisposisi && (
+    <button
+      onClick={handleSimpanDisposisi}
+      className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
+    >
+      💾 Simpan Disposisi
+    </button>
+  )}
           <button
             onClick={() => navigate('/naskah/rekap-belum')}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-lg transition"

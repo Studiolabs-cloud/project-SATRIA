@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 // Data dummy, nanti fetch dari API berdasarkan :id
 const DUMMY_SURAT = {
@@ -14,6 +15,10 @@ const DUMMY_SURAT = {
 export default function TindakLanjut() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const bisaIsiTindakLanjut = ['Admin', 'Kepala Bidang', 'Pelaksana'].includes(user?.role);
+  const bisaVerifikasi = ['Admin', 'Kadis', 'Sekdis'].includes(user?.role);
 
   // State tindak lanjut (pelaksana)
   const [uraianPekerjaan, setUraianPekerjaan] = useState('');
@@ -35,6 +40,9 @@ export default function TindakLanjut() {
     setTimeout(() => setToast((prev) => (prev ? { ...prev, visible: false } : null)), 4700);
     setTimeout(() => setToast(null), 5000);
   };
+
+  const isGambar = (file) => file.type?.startsWith('image/');
+  const getFileUrl = (file) => URL.createObjectURL(file);
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
@@ -113,7 +121,7 @@ export default function TindakLanjut() {
         </div>
       </div>
 
-      {/* Bagian 1: Isi Tindak Lanjut (Pelaksana) */}
+      {/* Bagian 1: Isi Tindak Lanjut */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-bold text-gray-800">📝 Isi Tindak Lanjut</h2>
@@ -124,48 +132,85 @@ export default function TindakLanjut() {
           )}
         </div>
 
+        {!bisaIsiTindakLanjut && (
+          <div className="bg-blue-50 text-blue-700 text-sm px-4 py-2.5 rounded-lg mb-4">
+            👁️ Anda melihat uraian pekerjaan dalam mode tampilan saja (read-only).
+          </div>
+        )}
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Uraian Pekerjaan <span className="text-red-500">*</span>
+            Uraian Pekerjaan {bisaIsiTindakLanjut && <span className="text-red-500">*</span>}
           </label>
           <textarea
             value={uraianPekerjaan}
             onChange={(e) => setUraianPekerjaan(e.target.value)}
-            disabled={sudahDisubmit}
+            disabled={sudahDisubmit || !bisaIsiTindakLanjut}
             rows={4}
-            placeholder="Jelaskan hasil pemeriksaan, tindakan yang sudah dilakukan, atau kendala yang masih ada..."
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-500"
+            placeholder={
+              bisaIsiTindakLanjut
+                ? 'Jelaskan hasil pemeriksaan, tindakan yang sudah dilakukan, atau kendala yang masih ada...'
+                : 'Belum ada uraian pekerjaan yang diisi.'
+            }
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-600"
           />
         </div>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Bukti Pendukung (opsional)</label>
-          <input
-            type="file"
-            multiple
-            disabled={sudahDisubmit}
-            onChange={handleFileChange}
-            className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-700 file:text-white hover:file:bg-blue-800 disabled:opacity-50"
-          />
-          <p className="text-xs text-gray-400 mt-1">PDF, Word, Excel, atau gambar sesuai kebutuhan</p>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Bukti Pendukung</label>
+
+          {bisaIsiTindakLanjut && !sudahDisubmit && (
+            <>
+              <input
+                type="file"
+                multiple
+                onChange={handleFileChange}
+                className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-700 file:text-white hover:file:bg-blue-800"
+              />
+              <p className="text-xs text-gray-400 mt-1">PDF, Word, Excel, atau gambar sesuai kebutuhan</p>
+            </>
+          )}
+
+          {buktiFiles.length === 0 && (!bisaIsiTindakLanjut || sudahDisubmit) && (
+            <p className="text-sm text-gray-400 italic">Belum ada bukti pendukung yang diunggah.</p>
+          )}
 
           {buktiFiles.length > 0 && (
-            <div className="mt-2 space-y-1">
+            <div className="mt-2 grid grid-cols-2 md:grid-cols-3 gap-3">
               {buktiFiles.map((file, idx) => (
-                <div key={idx} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-1.5 text-sm">
-                  <span className="text-gray-700">📎 {file.name}</span>
-                  {!sudahDisubmit && (
-                    <button onClick={() => hapusFile(idx)} className="text-red-600 text-xs hover:underline">
-                      Hapus
-                    </button>
+                <div key={idx} className="border border-gray-100 rounded-lg overflow-hidden">
+                  {isGambar(file) ? (
+                    <a href={getFileUrl(file)} target="_blank" rel="noopener noreferrer" className="block">
+                      <img src={getFileUrl(file)} alt={file.name} className="w-full h-24 object-cover" />
+                    </a>
+                  ) : (
+                    <div className="w-full h-24 bg-gray-50 flex items-center justify-center text-2xl">📄</div>
                   )}
+                  <div className="p-2 flex items-center justify-between gap-1">
+                    <span className="text-xs text-gray-600 truncate">{file.name}</span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <a
+                        href={getFileUrl(file)}
+                        download={file.name}
+                        className="text-xs text-blue-600 hover:underline"
+                        title="Download"
+                      >
+                        ⬇
+                      </a>
+                      {bisaIsiTindakLanjut && !sudahDisubmit && (
+                        <button onClick={() => hapusFile(idx)} className="text-xs text-red-600 hover:underline">
+                          Hapus
+                        </button>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {!sudahDisubmit && (
+        {!sudahDisubmit && bisaIsiTindakLanjut && (
           <button
             onClick={handleSimpanTindakLanjut}
             className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
@@ -199,7 +244,7 @@ export default function TindakLanjut() {
             </p>
             {catatanVerifikasi && <p className="text-xs opacity-80">Catatan: {catatanVerifikasi}</p>}
           </div>
-        ) : (
+        ) : bisaVerifikasi ? (
           <>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -229,6 +274,10 @@ export default function TindakLanjut() {
               </button>
             </div>
           </>
+        ) : (
+          <p className="text-sm text-yellow-700 bg-yellow-50 px-4 py-2.5 rounded-lg">
+            ℹ️ Hanya Admin, Kadis, atau Sekdis yang dapat melakukan verifikasi.
+          </p>
         )}
       </div>
 

@@ -1,8 +1,11 @@
 // frontend/src/pages/Dashboard.jsx
 
 import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
+  const { user } = useAuth();
+
   // Data dummy dulu, nanti diganti fetch dari API
   const [stats] = useState({
     totalSemua: 31,
@@ -26,7 +29,7 @@ export default function Dashboard() {
       pesertaCount: 8,
     },
   ]);
-
+const bisaInputKegiatan = user?.role === 'Admin';
   return (
     <div className="p-6">
       {/* Header */}
@@ -35,11 +38,16 @@ export default function Dashboard() {
         <p className="text-gray-500 text-sm">Ringkasan data agenda Dinas Pertanahan</p>
       </div>
 
-      {/* Kartu Statistik */}
+  {/* Kartu Statistik */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <StatCard label="Total Semua Kegiatan" value={stats.totalSemua} linkText="Lihat Rekap Semua" />
         <StatCard label="Total Kegiatan Terkini" value={stats.totalTerkini} linkText="Lihat Rekap Terkini" />
-        <StatCard label="Total Kegiatan Bulan Ini" value={stats.totalBulanIni} linkText="Input Kegiatan" highlight />
+        <StatCard
+          label="Total Kegiatan Bulan Ini"
+          value={stats.totalBulanIni}
+          linkText={bisaInputKegiatan ? 'Input Kegiatan' : null}
+          highlight
+        />
       </div>
 
       {/* Tabel Agenda Hari Ini */}
@@ -49,9 +57,11 @@ export default function Dashboard() {
             <h2 className="text-lg font-semibold text-gray-800">Agenda Hari Ini</h2>
             <p className="text-gray-400 text-sm">Kegiatan yang aktif pada tanggal hari ini</p>
           </div>
-          <button className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-            + Tambah Kegiatan
-          </button>
+          {bisaInputKegiatan && (
+  <button className="bg-blue-700 hover:bg-blue-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
+    + Tambah Kegiatan
+  </button>
+)}
         </div>
 
         <div className="overflow-x-auto">
@@ -88,15 +98,17 @@ function StatCard({ label, value, linkText, highlight }) {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
       <p className="text-gray-500 text-sm mb-1">{label}</p>
       <p className="text-3xl font-bold text-gray-800 mb-3">{value}</p>
-      <button
-        className={`text-sm font-medium px-3 py-1.5 rounded-lg transition ${
-          highlight
-            ? 'bg-blue-700 text-white hover:bg-blue-800'
-            : 'text-blue-700 hover:bg-blue-50'
-        }`}
-      >
-        {linkText}
-      </button>
+      {linkText && (
+        <button
+          className={`text-sm font-medium px-3 py-1.5 rounded-lg transition ${
+            highlight
+              ? 'bg-blue-700 text-white hover:bg-blue-800'
+              : 'text-blue-700 hover:bg-blue-50'
+          }`}
+        >
+          {linkText}
+        </button>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 
+
 // Data dummy, nanti diganti fetch dari API
 const STATS = {
   totalSuratMasuk: 25,
