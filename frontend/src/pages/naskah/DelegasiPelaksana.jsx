@@ -26,8 +26,10 @@ const DUMMY_ASSIGNMENT = {
 export default function DelegasiPelaksana() {
   const { id } = useParams();
   const navigate = useNavigate();
-const { user } = useAuth();
-const bisaDelegasi = ['Admin', 'Kepala Bidang'].includes(user?.role);
+  const { user } = useAuth();
+
+  const bisaDelegasi = ['Admin', 'Kepala Bidang'].includes(user?.role);
+
   const [pelaksanaTerpilih, setPelaksanaTerpilih] = useState([]);
   const [dikerjakanLangsung, setDikerjakanLangsung] = useState(false);
   const [toast, setToast] = useState(null);
@@ -38,15 +40,17 @@ const bisaDelegasi = ['Admin', 'Kepala Bidang'].includes(user?.role);
   };
 
   const togglePelaksana = (pelaksanaId) => {
+    if (!bisaDelegasi) return;
     setPelaksanaTerpilih((prev) =>
       prev.includes(pelaksanaId) ? prev.filter((p) => p !== pelaksanaId) : [...prev, pelaksanaId]
     );
   };
 
   const handleDikerjakanLangsungChange = () => {
+    if (!bisaDelegasi) return;
     setDikerjakanLangsung((prev) => !prev);
     if (!dikerjakanLangsung) {
-      setPelaksanaTerpilih([]); // kosongkan pilihan pelaksana kalau dikerjakan langsung oleh pimpinan bidang
+      setPelaksanaTerpilih([]);
     }
   };
 
@@ -87,11 +91,13 @@ const bisaDelegasi = ['Admin', 'Kepala Bidang'].includes(user?.role);
             Pimpinan bidang/unit dapat memilih satu atau lebih pelaksana pada bidang/unit yang sama untuk menindaklanjuti assignment ini.
           </p>
         </div>
-{!bisaDelegasi && (
-  <div className="bg-yellow-50 text-yellow-800 text-sm px-4 py-2.5 rounded-lg mb-5">
-    ℹ️ Hanya Kepala Bidang atau Admin yang dapat melakukan delegasi ke pelaksana.
-  </div>
-)}
+
+        {!bisaDelegasi && (
+          <div className="bg-blue-50 text-blue-700 text-sm px-4 py-2.5 rounded-lg mb-5">
+            👁️ Anda hanya dapat melihat informasi delegasi (mode tampilan saja). Hanya Kepala Bidang atau Admin yang dapat melakukan delegasi.
+          </div>
+        )}
+
         {/* Info Assignment */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm border border-gray-100 rounded-lg p-4 mb-6">
           <div>
@@ -130,11 +136,16 @@ const bisaDelegasi = ['Admin', 'Kepala Bidang'].includes(user?.role);
         <div className="mb-4">
           <label className="block text-sm font-semibold text-gray-700 mb-2">Pilih Pelaksana</label>
 
-          <label className="flex items-center gap-2 mb-3 text-sm text-gray-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5">
+          <label
+            className={`flex items-center gap-2 mb-3 text-sm text-gray-700 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2.5 ${
+              !bisaDelegasi ? 'opacity-60' : 'cursor-pointer'
+            }`}
+          >
             <input
               type="checkbox"
               checked={dikerjakanLangsung}
               onChange={handleDikerjakanLangsungChange}
+              disabled={!bisaDelegasi}
               className="w-4 h-4 accent-blue-700"
             />
             Dikerjakan langsung oleh pimpinan bidang/unit (tidak didelegasikan ke pelaksana)
@@ -148,16 +159,17 @@ const bisaDelegasi = ['Admin', 'Kepala Bidang'].includes(user?.role);
             {DUMMY_PELAKSANA.map((pelaksana) => (
               <label
                 key={pelaksana.id}
-                className={`flex items-center gap-2.5 border rounded-lg px-3 py-2 cursor-pointer transition ${
+                className={`flex items-center gap-2.5 border rounded-lg px-3 py-2 transition ${
                   pelaksanaTerpilih.includes(pelaksana.id)
                     ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-100 hover:bg-gray-50'
-                }`}
+                    : 'border-gray-100'
+                } ${bisaDelegasi ? 'cursor-pointer hover:bg-gray-50' : 'opacity-60'}`}
               >
                 <input
                   type="checkbox"
                   checked={pelaksanaTerpilih.includes(pelaksana.id)}
                   onChange={() => togglePelaksana(pelaksana.id)}
+                  disabled={!bisaDelegasi}
                   className="w-4 h-4 accent-blue-700"
                 />
                 <div>
@@ -167,21 +179,26 @@ const bisaDelegasi = ['Admin', 'Kepala Bidang'].includes(user?.role);
               </label>
             ))}
           </div>
-          <p className="text-xs text-gray-400 mt-2">
-            Centang satu atau lebih pelaksana. Kosongkan semua jika assignment dikerjakan langsung oleh pimpinan bidang/unit.
-          </p>
+          {bisaDelegasi && (
+            <p className="text-xs text-gray-400 mt-2">
+              Centang satu atau lebih pelaksana. Kosongkan semua jika assignment dikerjakan langsung oleh pimpinan bidang/unit.
+            </p>
+          )}
+          {!bisaDelegasi && pelaksanaTerpilih.length === 0 && !dikerjakanLangsung && (
+            <p className="text-xs text-gray-400 mt-2 italic">Belum ada pelaksana yang ditentukan.</p>
+          )}
         </div>
 
         {/* Tombol Aksi */}
-      <div className="flex gap-3 pt-2">
-  {bisaDelegasi && (
-    <button
-      onClick={handleSimpanDelegasi}
-      className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
-    >
-      💾 Simpan Delegasi
-    </button>
-  )}
+        <div className="flex gap-3 pt-2">
+          {bisaDelegasi && (
+            <button
+              onClick={handleSimpanDelegasi}
+              className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
+            >
+              💾 Simpan Delegasi
+            </button>
+          )}
           <button
             onClick={() => navigate(`/naskah/detail/${id}`)}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-lg transition"

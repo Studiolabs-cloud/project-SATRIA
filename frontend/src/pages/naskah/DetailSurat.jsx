@@ -44,7 +44,9 @@ export default function DetailSurat() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+
   const bisaDisposisi = ['Admin', 'Kadis', 'Sekdis'].includes(user?.role);
+
   const [instruksiTerpilih, setInstruksiTerpilih] = useState([]);
   const [instruksiTambahan, setInstruksiTambahan] = useState('');
   const [uraianDisposisi, setUraianDisposisi] = useState('');
@@ -56,12 +58,14 @@ export default function DetailSurat() {
     new Date(dateStr).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
   const toggleInstruksi = (item) => {
+    if (!bisaDisposisi) return;
     setInstruksiTerpilih((prev) =>
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item]
     );
   };
 
   const toggleBidang = (id) => {
+    if (!bisaDisposisi) return;
     setBidangTerpilih((prev) =>
       prev.includes(id) ? prev.filter((b) => b !== id) : [...prev, id]
     );
@@ -148,36 +152,44 @@ export default function DetailSurat() {
 
       {/* Form Disposisi */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-  <h2 className="text-lg font-bold text-gray-800 mb-1">Disposisi Surat</h2>
-  <p className="text-gray-500 text-sm mb-5">
-    Tentukan instruksi disposisi, uraian arahan, dan satu atau lebih bidang tujuan
-  </p>
+        <h2 className="text-lg font-bold text-gray-800 mb-1">Disposisi Surat</h2>
+        <p className="text-gray-500 text-sm mb-5">
+          Tentukan instruksi disposisi, uraian arahan, dan satu atau lebih bidang tujuan
+        </p>
 
-  {!bisaDisposisi && (
-    <div className="bg-yellow-50 text-yellow-800 text-sm px-4 py-2.5 rounded-lg mb-5">
-      ℹ️ Anda hanya dapat melihat detail disposisi. Hanya Admin, Kadis, atau Sekdis yang dapat mengisi disposisi.
-    </div>
-  )}
+        {!bisaDisposisi && (
+          <div className="bg-blue-50 text-blue-700 text-sm px-4 py-2.5 rounded-lg mb-5">
+            👁️ Anda hanya dapat melihat detail disposisi (mode tampilan saja). Hanya Admin, Kadis, atau Sekdis yang dapat mengisi disposisi.
+          </div>
+        )}
 
         {/* Instruksi Disposisi */}
         <div className="mb-5">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Instruksi Disposisi <span className="text-red-500">*</span>
+            Instruksi Disposisi {bisaDisposisi && <span className="text-red-500">*</span>}
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-2 border border-gray-100 rounded-lg p-4">
             {INSTRUKSI_OPTIONS.map((item) => (
-              <label key={item} className="flex items-center gap-2 text-sm text-gray-700">
+              <label
+                key={item}
+                className={`flex items-center gap-2 text-sm text-gray-700 ${
+                  !bisaDisposisi ? 'opacity-60' : 'cursor-pointer'
+                }`}
+              >
                 <input
-  type="checkbox"
-  checked={instruksiTerpilih.includes(item)}
-  onChange={() => toggleInstruksi(item)}
-  disabled={!bisaDisposisi}
-  className="w-4 h-4 accent-blue-700 disabled:opacity-50"
-/>
+                  type="checkbox"
+                  checked={instruksiTerpilih.includes(item)}
+                  onChange={() => toggleInstruksi(item)}
+                  disabled={!bisaDisposisi}
+                  className="w-4 h-4 accent-blue-700"
+                />
                 {item}
               </label>
             ))}
           </div>
+          {!bisaDisposisi && instruksiTerpilih.length === 0 && (
+            <p className="text-xs text-gray-400 mt-2 italic">Belum ada instruksi yang dipilih.</p>
+          )}
         </div>
 
         {/* Instruksi Tambahan */}
@@ -188,13 +200,16 @@ export default function DetailSurat() {
           <textarea
             value={instruksiTambahan}
             onChange={(e) => setInstruksiTambahan(e.target.value)}
+            disabled={!bisaDisposisi}
             rows={2}
-            placeholder="Contoh: Mohon telaah khusus..."
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            placeholder={bisaDisposisi ? 'Contoh: Mohon telaah khusus...' : 'Tidak ada instruksi tambahan.'}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-600"
           />
-          <p className="text-xs text-gray-400 mt-1">
-            Jika teks tidak ada pada pilihan checklist, teks ini akan masuk ke kolom kosong pada lembar disposisi.
-          </p>
+          {bisaDisposisi && (
+            <p className="text-xs text-gray-400 mt-1">
+              Jika teks tidak ada pada pilihan checklist, teks ini akan masuk ke kolom kosong pada lembar disposisi.
+            </p>
+          )}
         </div>
 
         {/* Uraian Disposisi */}
@@ -203,9 +218,14 @@ export default function DetailSurat() {
           <textarea
             value={uraianDisposisi}
             onChange={(e) => setUraianDisposisi(e.target.value)}
+            disabled={!bisaDisposisi}
             rows={3}
-            placeholder="Tuliskan uraian disposisi untuk menuliskan arahan secara lengkap tanpa batas penulisan karakter dan isi lainnya"
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            placeholder={
+              bisaDisposisi
+                ? 'Tuliskan uraian disposisi untuk menuliskan arahan secara lengkap tanpa batas penulisan karakter dan isi lainnya'
+                : 'Belum ada uraian disposisi.'
+            }
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-600"
           />
         </div>
 
@@ -216,30 +236,32 @@ export default function DetailSurat() {
             type="date"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className="w-full md:w-64 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            disabled={!bisaDisposisi}
+            className="w-full md:w-64 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-600"
           />
-          <p className="text-xs text-gray-400 mt-1">Opsional. Kosongkan jika deadline belum ditentukan.</p>
+          {bisaDisposisi && <p className="text-xs text-gray-400 mt-1">Opsional. Kosongkan jika deadline belum ditentukan.</p>}
         </div>
 
         {/* Bidang Tujuan */}
         <div className="mb-6">
           <label className="block text-sm font-semibold text-gray-700 mb-2">
-            Bidang Tujuan <span className="text-red-500">*</span>
+            Bidang Tujuan {bisaDisposisi && <span className="text-red-500">*</span>}
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {BIDANG_OPTIONS.map((bidang) => (
               <label
                 key={bidang.id}
-                className={`flex items-start gap-2.5 border rounded-lg px-3 py-2.5 cursor-pointer transition ${
+                className={`flex items-start gap-2.5 border rounded-lg px-3 py-2.5 transition ${
                   bidangTerpilih.includes(bidang.id)
                     ? 'border-blue-600 bg-blue-50'
-                    : 'border-gray-200 hover:bg-gray-50'
-                }`}
+                    : 'border-gray-200'
+                } ${bisaDisposisi ? 'cursor-pointer hover:bg-gray-50' : 'opacity-60'}`}
               >
                 <input
                   type="checkbox"
                   checked={bidangTerpilih.includes(bidang.id)}
                   onChange={() => toggleBidang(bidang.id)}
+                  disabled={!bisaDisposisi}
                   className="w-4 h-4 accent-blue-700 mt-0.5"
                 />
                 <div>
@@ -253,19 +275,19 @@ export default function DetailSurat() {
 
         {/* Tombol Aksi */}
         <div className="flex gap-3">
-  {bisaDisposisi && (
-    <button
-      onClick={handleSimpanDisposisi}
-      className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
-    >
-      💾 Simpan Disposisi
-    </button>
-  )}
+          {bisaDisposisi && (
+            <button
+              onClick={handleSimpanDisposisi}
+              className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
+            >
+              💾 Simpan Disposisi
+            </button>
+          )}
           <button
             onClick={() => navigate('/naskah/rekap-belum')}
             className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-6 py-2.5 rounded-lg transition"
           >
-            Kembali ke Detail
+            Kembali ke Rekap
           </button>
         </div>
       </div>
