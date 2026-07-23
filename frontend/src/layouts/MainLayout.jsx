@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import logoImg from '../assets/Logo.png';
+import { useAuth } from '../context/AuthContext';
 
 const MODULES = {
   agenda: {
@@ -27,13 +28,6 @@ const MODULES = {
     ],
   },
 };
-
-const CURRENT_USER = {
-  nama: 'Studio Labs',
-  role: 'Admin',
-  bidang: 'Sekretariat',
-};
-
 function getActiveModuleKey(pathname) {
   if (pathname.startsWith('/naskah')) return 'naskah';
   return 'agenda';
@@ -45,7 +39,7 @@ export default function MainLayout({ children }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const dropdownRef = useRef(null);
-
+  const { user, logout } = useAuth();
   const activeModuleKey = getActiveModuleKey(location.pathname);
   const activeModule = MODULES[activeModuleKey];
 
@@ -152,29 +146,41 @@ export default function MainLayout({ children }) {
         </nav>
 
         {/* Info Role Akun di Bawah */}
-        <div className="px-3 py-3 border-t border-blue-700/50">
-          <div
-            className={`flex items-center gap-3 px-2 py-2 rounded-lg ${collapsed ? 'justify-center' : ''}`}
-            title={collapsed ? `${CURRENT_USER.nama} (${CURRENT_USER.role})` : undefined}
-          >
-            <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
-              {CURRENT_USER.nama.charAt(0)}
-            </div>
-            {!collapsed && (
-              <div className="overflow-hidden">
-                <p className="text-sm font-medium text-white whitespace-nowrap">{CURRENT_USER.nama}</p>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded-full whitespace-nowrap">
-                    {CURRENT_USER.role}
-                  </span>
-                  <span className="text-[10px] text-blue-200 whitespace-nowrap truncate">
-                    {CURRENT_USER.bidang}
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
+<div className="px-3 py-3 border-t border-blue-700/50">
+  <div
+    className={`flex items-center gap-3 px-2 py-2 rounded-lg ${collapsed ? 'justify-center' : ''}`}
+    title={collapsed ? `${user?.nama} (${user?.role})` : undefined}
+  >
+    <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
+      {user?.nama?.charAt(0)}
+    </div>
+    {!collapsed && (
+      <div className="overflow-hidden flex-1">
+        <p className="text-sm font-medium text-white whitespace-nowrap">{user?.nama}</p>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[10px] bg-blue-600 text-white px-1.5 py-0.5 rounded-full whitespace-nowrap">
+            {user?.role}
+          </span>
+          <span className="text-[10px] text-blue-200 whitespace-nowrap truncate">
+            {user?.bidang}
+          </span>
         </div>
+      </div>
+    )}
+  </div>
+
+  {/* Tombol Logout */}
+  <button
+    onClick={logout}
+    title="Logout"
+    className={`w-full flex items-center gap-2 mt-2 px-2 py-2 rounded-lg text-sm text-blue-200 hover:bg-blue-700 hover:text-white transition ${
+      collapsed ? 'justify-center' : ''
+    }`}
+  >
+    <span>🚪</span>
+    {!collapsed && <span>Logout</span>}
+  </button>
+</div>
       </aside>
 
       {/* KONTEN HALAMAN */}
