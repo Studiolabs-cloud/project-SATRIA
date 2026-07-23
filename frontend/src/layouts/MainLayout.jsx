@@ -4,25 +4,27 @@ import logoImg from '../assets/Logo.png';
 import { useAuth } from '../context/AuthContext';
 
 const MODULES = {
-  agenda: {
-    label: 'Agenda',
-    icon: '📅',
-    basePath: '/',
-    menu: [
-      { label: 'Dashboard', path: '/', icon: '🏠' },
-      { label: 'Input Kegiatan', path: '/input-kegiatan', icon: '➕' },
-      { label: 'Rekap Semua', path: '/rekap-semua', icon: '📋' },
-      { label: 'Rekap Terkini', path: '/rekap-terkini', icon: '🕐' },
-      { label: 'Master Peserta', path: '/master-peserta', icon: '👥' },
-    ],
-  },
+ agenda: {
+  label: 'Agenda',
+  icon: '📅',
+  basePath: '/',
+  allowedRoles: ['Admin', 'Kadis'],
+  menu: [
+    { label: 'Dashboard', path: '/', icon: '🏠' },
+    { label: 'Input Kegiatan', path: '/input-kegiatan', icon: '➕', allowedRoles: ['Admin'] },
+    { label: 'Rekap Semua', path: '/rekap-semua', icon: '📋' },
+    { label: 'Rekap Terkini', path: '/rekap-terkini', icon: '🕐' },
+    { label: 'Master Peserta', path: '/master-peserta', icon: '👥', allowedRoles: ['Admin'] },
+  ],
+},
   naskah: {
     label: 'Naskah/Persuratan',
     icon: '📄',
     basePath: '/naskah',
+    allowedRoles: ['Admin', 'Kadis', 'Sekdis', 'Pengelola Surat', 'Kepala Bidang', 'Pelaksana'],
     menu: [
       { label: 'Dashboard', path: '/naskah', icon: '🏠' },
-      { label: 'Input Surat Masuk', path: '/naskah/input-surat', icon: '➕' },
+      { label: 'Input Surat Masuk', path: '/naskah/input-surat', icon: '➕', allowedRoles: ['Admin', 'Pengelola Surat'] },
       { label: 'Rekap Belum', path: '/naskah/rekap-belum', icon: '⏳' },
       { label: 'Rekap Selesai', path: '/naskah/rekap-selesai', icon: '✅' },
     ],
@@ -43,15 +45,33 @@ export default function MainLayout({ children }) {
   const activeModuleKey = getActiveModuleKey(location.pathname);
   const activeModule = MODULES[activeModuleKey];
 
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
+
+// Modul yang boleh dilihat sesuai role user yang login
+const visibleModuleEntries = Object.entries(MODULES).filter(([_, mod]) =>
+  mod.allowedRoles.includes(user?.role)
+);
+
+// Menu di dalam modul aktif, difilter sesuai role
+const visibleMenuItems = activeModule.menu.filter(
+  (item) => !item.allowedRoles || item.allowedRoles.includes(user?.role)
+);
+
+ useEffect(() => {
+  function handleClickOutside(e) {
+    if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+      setDropdownOpen(false);
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }
+  document.addEventListener('mousedown', handleClickOutside);
+  return () => document.removeEventListener('mousedown', handleClickOutside);
+}, []);
+
+useEffect(() => {
+  if (!activeModule.allowedRoles.includes(user?.role)) {
+    const fallback = visibleModuleEntries[0];
+    if (fallback) navigate(fallback[1].basePath);
+  }
+}, [activeModuleKey, user]);
 
   const handleSelectModule = (key) => {
     setDropdownOpen(false);
@@ -100,50 +120,50 @@ export default function MainLayout({ children }) {
             )}
           </button>
 
-          {dropdownOpen && (
-            <div className="absolute left-3 right-3 mt-2 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden z-50">
-              <p className="text-xs text-gray-400 px-4 pt-3 pb-1">Pilih Modul Kerja</p>
-              {Object.entries(MODULES).map(([key, mod]) => (
-                <button
-                  key={key}
-                  onClick={() => handleSelectModule(key)}
-                  className={`w-full text-left flex items-center gap-3 px-4 py-3 text-sm transition ${
-                    key === activeModuleKey
-                      ? 'bg-blue-50 text-blue-800 font-semibold'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <span className="text-lg">{mod.icon}</span>
-                  <span>{mod.label}</span>
-                </button>
-              ))}
-            </div>
-          )}
+         {dropdownOpen && (
+  <div className="absolute left-3 right-3 mt-2 bg-white rounded-lg shadow-lg border border-gray-100 overflow-hidden z-50">
+    <p className="text-xs text-gray-400 px-4 pt-3 pb-1">Pilih Modul Kerja</p>
+    {visibleModuleEntries.map(([key, mod]) => (
+      <button
+        key={key}
+        onClick={() => handleSelectModule(key)}
+        className={`w-full text-left flex items-center gap-3 px-4 py-3 text-sm transition ${
+          key === activeModuleKey
+            ? 'bg-blue-50 text-blue-800 font-semibold'
+            : 'text-gray-700 hover:bg-gray-50'
+        }`}
+      >
+        <span className="text-lg">{mod.icon}</span>
+        <span>{mod.label}</span>
+      </button>
+    ))}
+  </div>
+)}
         </div>
 
         {/* Menu Navigasi */}
-        <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
-          {activeModule.menu.map((item) => {
-            const isActive = location.pathname === item.path;
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
-                title={collapsed ? item.label : undefined}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${
-                  collapsed ? 'justify-center' : ''
-                } ${
-                  isActive
-                    ? 'bg-white text-blue-800 font-semibold'
-                    : 'text-blue-100 hover:bg-blue-700'
-                }`}
-              >
-                <span className="text-base flex-shrink-0">{item.icon}</span>
-                {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
-              </Link>
-            );
-          })}
-        </nav>
+      <nav className="flex-1 px-3 py-3 space-y-1 overflow-y-auto">
+  {visibleMenuItems.map((item) => {
+    const isActive = location.pathname === item.path;
+    return (
+      <Link
+        key={item.path}
+        to={item.path}
+        title={collapsed ? item.label : undefined}
+        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition ${
+          collapsed ? 'justify-center' : ''
+        } ${
+          isActive
+            ? 'bg-white text-blue-800 font-semibold'
+            : 'text-blue-100 hover:bg-blue-700'
+        }`}
+      >
+        <span className="text-base flex-shrink-0">{item.icon}</span>
+        {!collapsed && <span className="whitespace-nowrap">{item.label}</span>}
+      </Link>
+    );
+  })}
+</nav>
 
         {/* Info Role Akun di Bawah */}
 <div className="px-3 py-3 border-t border-blue-700/50">

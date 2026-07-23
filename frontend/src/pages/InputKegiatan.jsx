@@ -198,11 +198,11 @@ export default function InputKegiatan() {
             <label className="block text-sm font-medium text-gray-700">
               Yang Menghadiri <span className="text-red-500">*</span>
             </label>
-            <button
+            <button 
               type="button"
               className="text-xs text-blue-700 border border-blue-700 rounded-lg px-3 py-1 hover:bg-blue-50"
             >
-              Kelola Master Panitia
+              Kelola Master Pegawai
             </button>
           </div>
 
@@ -213,7 +213,7 @@ export default function InputKegiatan() {
               onChange={toggleSemuaPegawai}
               className="w-4 h-4 accent-blue-700"
             />
-            Semua Pegawai Dinas Pertanahan Kota Batam
+            Semua Pegawai Bappeda Kota Batam
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 border border-gray-100 rounded-lg p-3 max-h-48 overflow-y-auto">

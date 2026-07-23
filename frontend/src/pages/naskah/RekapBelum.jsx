@@ -136,14 +136,17 @@ export default function RekapBelum() {
                           {item.status}
                         </span>
                       </td>
-                     <td className="py-3 px-4 text-center whitespace-nowrap">
-                      <Link to={`/naskah/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium mr-3">
-                       Detail
-                     </Link>
-                     <Link to={`/naskah/delegasi/${item.id}`} className="text-purple-600 hover:underline text-xs font-medium">
-                       Delegasi
-                     </Link>
-                    </td>
+                    <td className="py-3 px-4 text-center whitespace-nowrap">
+  <Link to={`/naskah/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium mr-3">
+    Detail
+  </Link>
+  <Link to={`/naskah/delegasi/${item.id}`} className="text-purple-600 hover:underline text-xs font-medium mr-3">
+    Delegasi
+  </Link>
+  <Link to={`/naskah/tindak-lanjut/${item.id}`} className="text-blue-600 hover:underline text-xs font-medium">
+    Tindak Lanjut
+  </Link>
+</td>
                     </tr>
                   );
                 })

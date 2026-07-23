@@ -36,7 +36,7 @@ export default function Login() {
             <span className="text-2xl">🏛️</span>
           </div>
           <h1 className="text-white text-2xl font-bold">SATRIA BATAM</h1>
-          <p className="text-blue-200 text-sm">Sistem Administrasi Terintegrasi Arsip dan Persuratan</p>
+          <p className="text-blue-200 text-sm">Sistem Administrasi Terintegrasi Arsip dan Persuratan Kota Batam</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -109,7 +109,7 @@ export default function Login() {
         </div>
 
         <p className="text-center text-blue-200 text-xs mt-4">
-          © 2026 Dinas Pertanahan Kota Batam
+          © 2026 Bappeda Kota Batam
         </p>
       </div>
     </div>
