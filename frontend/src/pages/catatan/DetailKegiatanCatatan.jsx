@@ -30,7 +30,7 @@ export default function DetailKegiatanCatatan() {
 
   // Kepala Bidang wajib upload file, staf biasa cukup isi catatan
   const wajibUploadFile = user?.role === 'Kepala Bidang';
-
+  const bisaMengisi = ['Admin', 'Kepala Bidang', 'Pelaksana'].includes(user?.role);
   const formatTanggal = (dateStr) =>
     new Date(dateStr).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
@@ -120,16 +120,22 @@ export default function DetailKegiatanCatatan() {
           )}
         </div>
 
+        {!bisaMengisi && (
+        <div className="bg-blue-50 text-blue-700 text-sm px-4 py-2.5 rounded-lg mb-4">
+        👁️ Anda memantau kegiatan ini dalam mode tampilan saja. Hanya Admin, Kepala Bidang, atau Pelaksana yang dapat mengisi notulen.
+        </div>
+         )}
+
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
             File Notulen/Catatan {wajibUploadFile && <span className="text-red-500">*</span>}
           </label>
           <input
-            type="file"
-            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-            disabled={terkunci}
-            onChange={handleFileChange}
-            className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-700 file:text-white hover:file:bg-blue-800 disabled:opacity-50"
+           type="file"
+           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+           disabled={terkunci || !bisaMengisi}
+           onChange={handleFileChange}
+          className="w-full text-sm text-gray-600 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-700 file:text-white hover:file:bg-blue-800 disabled:opacity-50"
           />
           <p className="text-xs text-gray-400 mt-1">
             Format PDF, DOC, DOCX, JPG, PNG. {wajibUploadFile ? 'Kepala Bidang wajib mengunggah file, staf boleh hanya mengisi catatan.' : ''}
@@ -140,25 +146,27 @@ export default function DetailKegiatanCatatan() {
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">Catatan Kegiatan</label>
           <textarea
-            value={catatan}
-            onChange={(e) => setCatatan(e.target.value)}
-            disabled={terkunci}
-            rows={4}
-            placeholder="Tuliskan catatan kegiatan dengan bahasa singkat, jelas, dan sesuai hasil kegiatan..."
-            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-600"
+          value={catatan}
+          onChange={(e) => setCatatan(e.target.value)}
+          disabled={terkunci || !bisaMengisi}
+          rows={4}
+          placeholder={bisaMengisi ? 'Tuliskan catatan kegiatan dengan bahasa singkat, jelas, dan sesuai hasil kegiatan...' : 'Belum ada catatan kegiatan.'}
+          className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50 disabled:text-gray-600"
           />
         </div>
 
         {!terkunci ? (
-          <button
-            onClick={handleSimpanNotulen}
-            className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
-          >
-            💾 Simpan
-          </button>
-        ) : (
-          <>
-            {!showRequestEdit ? (
+  bisaMengisi && (
+    <button
+      onClick={handleSimpanNotulen}
+      className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
+    >
+      💾 Simpan
+    </button>
+  )
+) : (
+  <>
+    {bisaMengisi && !showRequestEdit ? (
               <button
                 onClick={() => setShowRequestEdit(true)}
                 className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium px-5 py-2 rounded-lg transition text-sm"
@@ -198,11 +206,16 @@ export default function DetailKegiatanCatatan() {
       </div>
 
       {/* Rencana Tindak Lanjut */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-        <h2 className="text-lg font-bold text-gray-800 mb-1">🔄 Rencana Tindak Lanjut</h2>
-        <p className="text-gray-500 text-sm mb-4">Isi jika kegiatan menghasilkan rencana lanjutan</p>
+      {/* Rencana Tindak Lanjut */}
+<div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+  <h2 className="text-lg font-bold text-gray-800 mb-1">🔄 Rencana Tindak Lanjut</h2>
+  <p className="text-gray-500 text-sm mb-4">Isi jika kegiatan menghasilkan rencana lanjutan</p>
 
-        {lanjutanTersimpan ? (
+  {!bisaMengisi && !lanjutanTersimpan && (
+    <p className="text-sm text-gray-400 italic">Belum ada rencana tindak lanjut.</p>
+  )}
+
+  {lanjutanTersimpan ? (
           <div className="bg-purple-50 text-purple-800 rounded-lg p-4 text-sm">
             <p className="font-semibold mb-1">✓ Rencana Lanjutan Tersimpan</p>
             <p className="mb-1">{uraianLanjutan}</p>
@@ -210,7 +223,7 @@ export default function DetailKegiatanCatatan() {
               PIC: {picLanjutan || '-'} {deadlineLanjutan && `• Batas waktu: ${formatTanggal(deadlineLanjutan)}`}
             </p>
           </div>
-        ) : (
+        ) : bisaMengisi ? (
           <>
             <div className="mb-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Uraian Tindak Lanjut</label>
@@ -250,7 +263,7 @@ export default function DetailKegiatanCatatan() {
               💾 Simpan Rencana Lanjutan
             </button>
           </>
-        )}
+        ) : null}
       </div>
 
       {/* Toast Notification */}
