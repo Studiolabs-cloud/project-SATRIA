@@ -17,7 +17,7 @@ const MODULES = {
     { label: 'Master Peserta', path: '/master-peserta', icon: '👥', allowedRoles: ['Admin'] },
   ],
 },
-  naskah: {
+ naskah: {
     label: 'Naskah/Persuratan',
     icon: '📄',
     basePath: '/naskah',
@@ -29,9 +29,20 @@ const MODULES = {
       { label: 'Rekap Selesai', path: '/naskah/rekap-selesai', icon: '✅' },
     ],
   },
+  catatan: {
+    label: 'Catatan Administrasi',
+    icon: '📝',
+    basePath: '/catatan',
+    allowedRoles: ['Admin', 'Kadis', 'Sekdis', 'Kepala Bidang', 'Pelaksana'],
+    menu: [
+      { label: 'Dashboard', path: '/catatan', icon: '🏠' },
+      { label: 'Daftar Kegiatan', path: '/catatan/daftar-kegiatan', icon: '📋' },
+    ],
+  },
 };
 function getActiveModuleKey(pathname) {
   if (pathname.startsWith('/naskah')) return 'naskah';
+  if (pathname.startsWith('/catatan')) return 'catatan';
   return 'agenda';
 }
 

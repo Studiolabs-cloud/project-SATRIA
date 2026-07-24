@@ -18,6 +18,10 @@ import DetailSurat from './pages/naskah/DetailSurat';
 import DelegasiPelaksana from './pages/naskah/DelegasiPelaksana';
 import TindakLanjut from './pages/naskah/TindakLanjut';
 
+import DashboardCatatan from './pages/catatan/DashboardCatatan';
+import DaftarKegiatan from './pages/catatan/DaftarKegiatan';
+import DetailKegiatanCatatan from './pages/catatan/DetailKegiatanCatatan';
+
 function App() {
   return (
     <AuthProvider>
@@ -48,6 +52,11 @@ function App() {
                     <Route path="/naskah/detail/:id" element={<DetailSurat />} />
                     <Route path="/naskah/delegasi/:id" element={<DelegasiPelaksana />} />
                     <Route path="/naskah/tindak-lanjut/:id" element={<TindakLanjut />} />
+
+                    {/** Modul Catatan Administrasi */}
+                    <Route path="/catatan" element={<DashboardCatatan />} />
+                    <Route path="/catatan/daftar-kegiatan" element={<DaftarKegiatan />} />
+                    <Route path="/catatan/detail/:id" element={<DetailKegiatanCatatan />} />
                   </Routes>
                 </MainLayout>
               </ProtectedRoute>
