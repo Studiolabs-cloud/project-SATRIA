@@ -1,13 +1,127 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id            Int      @id @default(autoincrement())
+  username      String   @unique
+  passwordHash  String
+  nama          String
+  role          String
+  bidang        String?
+  noWa          String?
+  createdAt     DateTime @default(now())
+
+  agendaCreated AgendaKegiatan[] @relation("AgendaCreatedBy")
+  agendaPeserta AgendaPeserta[]
+}
+
+model AgendaKegiatan {
+  id             Int       @id @default(autoincrement())
+  tanggalMulai   DateTime
+  tanggalSelesai DateTime?
+  jamMulai       String
+  jamSelesai     String?
+  acara          String    @db.Text
+  tempat         String
+  undanganDari   String
+  fileUndangan   String?
+  keterangan     String?   @db.Text
+  createdById    Int
+  createdBy      User      @relation("AgendaCreatedBy", fields: [createdById], references: [id])
+  createdAt      DateTime  @default(now())
+
+  peserta AgendaPeserta[]
+}
+
+model AgendaPeserta {
+  id       Int            @id @default(autoincrement())
+  agendaId Int
+  agenda   AgendaKegiatan @relation(fields: [agendaId], references: [id])
+  userId   Int
+  user     User           @relation(fields: [userId], references: [id])
+}
+
+model SuratMasuk {
+  id                   Int       @id @default(autoincrement())
+  noUrut               Int
+  tglTerima            DateTime
+  tglSurat             DateTime
+  noSurat              String?
+  hal                  String    @db.Text
+  asalSurat            String
+  sifat                String    @default("(-) Tidak ada")
+  fileUtama            String?
+  deadlineTindakLanjut DateTime?
+  keteranganAdmin      String?   @db.Text
+  status               String    @default("draft")
+  createdAt            DateTime  @default(now())
+
+  lampiran  SuratLampiran[]
+  disposisi Disposisi[]
+}
+
+model SuratLampiran {
+  id       Int        @id @default(autoincrement())
+  suratId  Int
+  surat    SuratMasuk @relation(fields: [suratId], references: [id])
+  filePath String
+}
+
+model Disposisi {
+  id                Int        @id @default(autoincrement())
+  suratId           Int
+  surat             SuratMasuk @relation(fields: [suratId], references: [id])
+  instruksi         String     @db.Text
+  instruksiTambahan String?    @db.Text
+  uraian            String?    @db.Text
+  deadline          DateTime?
+  bidangTujuan      String     @db.Text
+  createdAt         DateTime   @default(now())
+
+  delegasi Delegasi[]
+}
+
+model Delegasi {
+  id                 Int       @id @default(autoincrement())
+  disposisiId        Int
+  disposisi          Disposisi @relation(fields: [disposisiId], references: [id])
+  pelaksanaIds       String    @db.Text
+  dikerjakanLangsung Boolean   @default(false)
+  createdAt          DateTime  @default(now())
+}
+
+model KegiatanInternal {
+  id      Int      @id @default(autoincrement())
+  tanggal DateTime
+  acara   String
+  tempat  String
+  peserta String   @db.Text
+
+  notulen         Notulen?
+  rencanaLanjutan RencanaLanjutan?
+}
+
+model Notulen {
+  id         Int              @id @default(autoincrement())
+  kegiatanId Int              @unique
+  kegiatan   KegiatanInternal @relation(fields: [kegiatanId], references: [id])
+  catatan    String           @db.Text
+  file       String?
+  terkunci   Boolean          @default(false)
+  createdAt  DateTime         @default(now())
+}
+
+model RencanaLanjutan {
+  id         Int              @id @default(autoincrement())
+  kegiatanId Int              @unique
+  kegiatan   KegiatanInternal @relation(fields: [kegiatanId], references: [id])
+  uraian     String           @db.Text
+  pic        String?
+  deadline   DateTime?
+  createdAt  DateTime         @default(now())
 }
