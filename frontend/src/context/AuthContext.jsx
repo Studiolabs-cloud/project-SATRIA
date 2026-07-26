@@ -1,16 +1,7 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
 
 const AuthContext = createContext(null);
-
-// Akun dummy untuk testing, nanti diganti validasi ke backend
-const DUMMY_USERS = [
-  { username: 'admin', password: 'admin123', nama: 'Budi Santoso', role: 'Admin', bidang: 'Sekretariat' },
-  { username: 'kadis', password: 'kadis123', nama: 'Ir. Hendra Wijaya', role: 'Kadis', bidang: 'Pimpinan' },
-  { username: 'sekdis', password: 'sekdis123', nama: 'Siti Aminah', role: 'Sekdis', bidang: 'Sekretariat' },
-  { username: 'pengelola', password: 'pengelola123', nama: 'Rina Marlina', role: 'Pengelola Surat', bidang: 'Sekretariat' },
-  { username: 'kabid', password: 'kabid123', nama: 'Rudi Hartono', role: 'Kepala Bidang', bidang: 'Pengadaan Tanah' },
-  { username: 'pelaksana', password: 'pelaksana123', nama: 'Ahmad Fauzi', role: 'Pelaksana', bidang: 'Penatagunaan Tanah' },
-];
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -19,28 +10,33 @@ export function AuthProvider({ children }) {
   // Cek sesi tersimpan saat aplikasi pertama kali dibuka
   useEffect(() => {
     const savedUser = localStorage.getItem('satria_user');
-    if (savedUser) {
+    const savedToken = localStorage.getItem('satria_token');
+    if (savedUser && savedToken) {
       setUser(JSON.parse(savedUser));
     }
     setLoading(false);
   }, []);
 
-  const login = (username, password) => {
-    const found = DUMMY_USERS.find(
-      (u) => u.username === username && u.password === password
-    );
-    if (found) {
-      const { password: _pw, ...userData } = found; // jangan simpan password di state
+  const login = async (username, password) => {
+    try {
+      const response = await api.post('/auth/login', { username, password });
+      const { token, user: userData } = response.data;
+
       setUser(userData);
       localStorage.setItem('satria_user', JSON.stringify(userData));
+      localStorage.setItem('satria_token', token);
+
       return { success: true };
+    } catch (error) {
+      const message = error.response?.data?.message || 'Gagal terhubung ke server';
+      return { success: false, message };
     }
-    return { success: false, message: 'Username atau password salah' };
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('satria_user');
+    localStorage.removeItem('satria_token');
   };
 
   return (
@@ -53,5 +49,3 @@ export function AuthProvider({ children }) {
 export function useAuth() {
   return useContext(AuthContext);
 }
-
-export { DUMMY_USERS };

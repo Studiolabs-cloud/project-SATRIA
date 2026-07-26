@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth, DUMMY_USERS } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function Login() {
   const { login } = useAuth();
@@ -9,23 +9,22 @@ export default function Login() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const result = login(username, password);
+    setLoading(true);
+
+    const result = await login(username, password);
+
+    setLoading(false);
+
     if (result.success) {
       navigate('/');
     } else {
       setError(result.message);
     }
-  };
-
-  const isiAkunDemo = (demoUsername, demoPassword) => {
-    setUsername(demoUsername);
-    setPassword(demoPassword);
-    setError('');
   };
 
   return (
@@ -36,7 +35,7 @@ export default function Login() {
             <span className="text-2xl">🏛️</span>
           </div>
           <h1 className="text-white text-2xl font-bold">SATRIA BATAM</h1>
-          <p className="text-blue-200 text-sm">Sistem Administrasi Terintegrasi Arsip dan Persuratan Kota Batam</p>
+          <p className="text-blue-200 text-sm">Sistem Administrasi Terintegrasi Arsip dan Persuratan</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-xl p-8">
@@ -52,7 +51,8 @@ export default function Login() {
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Masukkan username"
                 required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                disabled={loading}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50"
               />
             </div>
             <div>
@@ -63,7 +63,8 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Masukkan password"
                 required
-                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+                disabled={loading}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:bg-gray-50"
               />
             </div>
 
@@ -75,37 +76,12 @@ export default function Login() {
 
             <button
               type="submit"
-              className="w-full bg-blue-700 hover:bg-blue-800 text-white font-medium py-2.5 rounded-lg transition"
+              disabled={loading}
+              className="w-full bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white font-medium py-2.5 rounded-lg transition"
             >
-              Masuk ke SATRIA
+              {loading ? 'Memproses...' : 'Masuk ke SATRIA'}
             </button>
           </form>
-
-          <div className="mt-6 pt-5 border-t border-gray-100">
-            <button
-              onClick={() => setShowDemoAccounts((prev) => !prev)}
-              className="text-xs text-blue-700 hover:underline flex items-center gap-1 mx-auto"
-            >
-              {showDemoAccounts ? '▲ Sembunyikan' : '▼ Lihat'} akun demo untuk testing
-            </button>
-
-            {showDemoAccounts && (
-              <div className="mt-3 space-y-1.5">
-                {DUMMY_USERS.map((u) => (
-                  <button
-                    key={u.username}
-                    onClick={() => isiAkunDemo(u.username, u.password)}
-                    className="w-full flex justify-between items-center text-xs bg-gray-50 hover:bg-blue-50 px-3 py-2 rounded-lg transition text-left"
-                  >
-                    <span className="text-gray-700">
-                      <span className="font-medium">{u.role}</span> — {u.nama}
-                    </span>
-                    <span className="text-gray-400">{u.username}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
         </div>
 
         <p className="text-center text-blue-200 text-xs mt-4">
