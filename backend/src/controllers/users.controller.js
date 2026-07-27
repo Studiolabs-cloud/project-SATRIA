@@ -44,11 +44,21 @@ exports.createUser = async (req, res) => {
 exports.updateUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { nama, role, bidang, noWa } = req.body;
+    const { username, nama, role, bidang, noWa } = req.body;
+
+    if (!username) {
+      return res.status(400).json({ message: 'Username wajib diisi' });
+    }
+
+    // cek apakah username sudah dipakai user lain (selain dirinya sendiri)
+    const existing = await prisma.user.findUnique({ where: { username } });
+    if (existing && existing.id !== id) {
+      return res.status(400).json({ message: 'Username sudah digunakan oleh peserta lain' });
+    }
 
     const user = await prisma.user.update({
       where: { id },
-      data: { nama, role, bidang, noWa },
+      data: { username, nama, role, bidang, noWa },
       select: { id: true, username: true, nama: true, role: true, bidang: true, noWa: true },
     });
 
@@ -58,7 +68,6 @@ exports.updateUser = async (req, res) => {
     res.status(500).json({ message: 'Gagal memperbarui peserta' });
   }
 };
-
 exports.deleteUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
@@ -67,5 +76,28 @@ exports.deleteUser = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Gagal menghapus peserta' });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: 'Password baru minimal 6 karakter' });
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id },
+      data: { passwordHash },
+    });
+
+    res.json({ message: 'Password berhasil direset' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Gagal mereset password' });
   }
 };
