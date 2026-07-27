@@ -1,58 +1,18 @@
-// frontend/src/pages/RekapTerkini.jsx
-
-import { useState } from 'react';
-
-// Data dummy, nanti diganti fetch dari API
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 // Sengaja dibuat beberapa tanggal yang sudah lewat untuk testing filter
-const DUMMY_AGENDA = [
-  {
-    id: 1,
-    tanggalMulai: '2026-06-04',
-    tanggalSelesai: null,
-    jamMulai: '08:30',
-    jamSelesai: null,
-    acara: 'Rapat Koordinasi Pertanahan',
-    tempat: 'Ruang Rapat Dinas',
-    undanganDari: 'Sekretariat Daerah Kota Batam',
-    peserta: ['Budi Santoso', 'Siti Aminah', 'Ahmad Fauzi'],
-  },
-  {
-    id: 2,
-    tanggalMulai: '2026-06-04',
-    tanggalSelesai: null,
-    jamMulai: '13:00',
-    jamSelesai: null,
-    acara: 'Sosialisasi Program Sertifikasi Tanah',
-    tempat: 'Aula Kantor Dinas',
-    undanganDari: 'Dinas Pertanahan Kota Batam',
-    peserta: ['Dewi Lestari', 'Rudi Hartono', 'Maya Sari', 'Budi Santoso'],
-  },
-  {
-    id: 3,
-    tanggalMulai: '2026-07-25',
-    tanggalSelesai: '2026-07-26',
-    jamMulai: '09:00',
-    jamSelesai: '16:00',
-    acara: 'Bimbingan Teknis Pengukuran Tanah',
-    tempat: 'Hotel Harmoni One Batam',
-    undanganDari: 'Kementerian ATR/BPN',
-    peserta: ['Ahmad Fauzi', 'Maya Sari'],
-  },
-  {
-    id: 4,
-    tanggalMulai: '2026-08-01',
-    tanggalSelesai: null,
-    jamMulai: '10:00',
-    jamSelesai: '12:00',
-    acara: 'Audiensi Warga Terkait Sengketa Lahan',
-    tempat: 'Ruang Kepala Dinas',
-    undanganDari: 'Warga Kelurahan Sungai Jodoh',
-    peserta: ['Siti Aminah'],
-  },
-];
 
 export default function RekapTerkini() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [agendaList, setAgendaList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/agenda')
+      .then((res) => setAgendaList(res.data))
+      .catch((err) => console.error('Gagal ambil data agenda:', err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const formatTanggal = (dateStr) => {
     if (!dateStr) return '-';
@@ -77,7 +37,7 @@ export default function RekapTerkini() {
     return tanggalKegiatan >= hariIni;
   };
 
-  const dataTerkini = DUMMY_AGENDA.filter(isKegiatanTerkini).sort(
+  const dataTerkini = agendaList.filter(isKegiatanTerkini).sort(
     (a, b) => new Date(a.tanggalMulai) - new Date(b.tanggalMulai)
   );
 
@@ -140,7 +100,7 @@ export default function RekapTerkini() {
       </div>
 
       <p className="text-sm text-gray-500 mb-3">
-        Menampilkan {dataFiltered.length} kegiatan terkini dari total {DUMMY_AGENDA.length} kegiatan
+      Menampilkan {dataFiltered.length} kegiatan terkini dari total {agendaList.length} kegiatan  
       </p>
 
       {/* Tabel */}
@@ -159,7 +119,11 @@ export default function RekapTerkini() {
               </tr>
             </thead>
             <tbody>
-              {dataFiltered.length === 0 ? (
+              {loading ? (
+              <tr>
+      <td colSpan={7} className="py-8 text-center text-gray-400">Memuat data...</td>
+  </tr>
+) : dataFiltered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-gray-400">
                     Tidak ada kegiatan terkini yang cocok

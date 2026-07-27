@@ -1,23 +1,27 @@
 // frontend/src/pages/MasterPeserta.jsx
-
-import { useState } from 'react';
-
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 // Data dummy, nanti diganti fetch dari API
-const INITIAL_PESERTA = [
-  { id: 1, nama: 'Budi Santoso', jabatan: 'Kepala Bidang Pemanfaatan Tanah', noWa: '081234567001' },
-  { id: 2, nama: 'Siti Aminah', jabatan: 'Sekretaris Dinas', noWa: '081234567002' },
-  { id: 3, nama: 'Ahmad Fauzi', jabatan: 'Staf Penatagunaan Tanah', noWa: '081234567003' },
-  { id: 4, nama: 'Dewi Lestari', jabatan: 'Staf Pengawasan Masalah', noWa: '081234567004' },
-  { id: 5, nama: 'Rudi Hartono', jabatan: 'Kepala Bidang Pengadaan Tanah', noWa: '081234567005' },
-  { id: 6, nama: 'Maya Sari', jabatan: 'Staf Sekretariat', noWa: '081234567006' },
-];
 
 export default function MasterPeserta() {
-  const [pesertaList, setPesertaList] = useState(INITIAL_PESERTA);
+  const [pesertaList, setPesertaList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchPeserta = () => {
+    api.get('/users')
+      .then((res) => setPesertaList(res.data))
+      .catch((err) => console.error('Gagal ambil data peserta:', err))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchPeserta();
+  }, []);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ nama: '', jabatan: '', noWa: '' });
+ const [formData, setFormData] = useState({ username: '', password: '', nama: '', role: 'Pelaksana', bidang: '', noWa: '' });
+const ROLE_OPTIONS = ['Admin', 'Kadis', 'Sekdis', 'Pengelola Surat', 'Kepala Bidang', 'Pelaksana'];
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null); // simpan objek peserta yang mau dihapus
 const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -28,16 +32,16 @@ const [deleteModalVisible, setDeleteModalVisible] = useState(false);
       p.jabatan.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const openTambahModal = () => {
+ const openTambahModal = () => {
   setEditingId(null);
-  setFormData({ nama: '', jabatan: '', noWa: '' });
+  setFormData({ username: '', password: '', nama: '', role: 'Pelaksana', bidang: '', noWa: '' });
   setShowModal(true);
   setTimeout(() => setModalVisible(true), 10);
 };
 
 const openEditModal = (peserta) => {
   setEditingId(peserta.id);
-  setFormData({ nama: peserta.nama, jabatan: peserta.jabatan, noWa: peserta.noWa });
+  setFormData({ username: peserta.username, password: '', nama: peserta.nama, role: peserta.role, bidang: peserta.bidang || '', noWa: peserta.noWa || '' });
   setShowModal(true);
   setTimeout(() => setModalVisible(true), 10);
 };
@@ -46,17 +50,24 @@ const closeModal = () => {
   setTimeout(() => setShowModal(false), 200);
 };
 
-const handleSubmit = (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
-  if (editingId) {
-    setPesertaList((prev) =>
-      prev.map((p) => (p.id === editingId ? { ...p, ...formData } : p))
-    );
-  } else {
-    const newId = Math.max(...pesertaList.map((p) => p.id), 0) + 1;
-    setPesertaList((prev) => [...prev, { id: newId, ...formData }]);
+  try {
+    if (editingId) {
+      await api.put(`/users/${editingId}`, {
+        nama: formData.nama,
+        role: formData.role,
+        bidang: formData.bidang,
+        noWa: formData.noWa,
+      });
+    } else {
+      await api.post('/users', formData);
+    }
+    fetchPeserta();
+    closeModal();
+  } catch (error) {
+    alert(error.response?.data?.message || 'Gagal menyimpan data peserta');
   }
-  closeModal();
 };
 
  const openDeleteModal = (peserta) => {
@@ -69,9 +80,14 @@ const closeDeleteModal = () => {
   setTimeout(() => setDeleteTarget(null), 200);
 };
 
-const confirmDelete = () => {
-  setPesertaList((prev) => prev.filter((p) => p.id !== deleteTarget.id));
-  closeDeleteModal();
+const confirmDelete = async () => {
+  try {
+    await api.delete(`/users/${deleteTarget.id}`);
+    fetchPeserta();
+    closeDeleteModal();
+  } catch (error) {
+    alert(error.response?.data?.message || 'Gagal menghapus peserta');
+  }
 };
 
   return (
@@ -112,7 +128,7 @@ const confirmDelete = () => {
             <thead className="bg-gray-50 text-gray-500">
               <tr>
                 <th className="py-3 px-4 font-medium">Nama</th>
-                <th className="py-3 px-4 font-medium">Jabatan</th>
+                <th className="py-3 px-4 font-medium">Role</th>
                 <th className="py-3 px-4 font-medium">No. WhatsApp</th>
                 <th className="py-3 px-4 font-medium text-center">Aksi</th>
               </tr>
@@ -128,7 +144,7 @@ const confirmDelete = () => {
                 dataFiltered.map((peserta) => (
                   <tr key={peserta.id} className="border-t border-gray-50 hover:bg-gray-50">
                     <td className="py-3 px-4 text-gray-800 font-medium">{peserta.nama}</td>
-                    <td className="py-3 px-4 text-gray-700">{peserta.jabatan}</td>
+                    <td className="py-3 px-4 text-gray-700">{peserta.role}</td>
                     <td className="py-3 px-4 text-gray-700">{peserta.noWa}</td>
                     <td className="py-3 px-4 text-center">
                       <button
@@ -152,7 +168,6 @@ const confirmDelete = () => {
         </div>
       </div>
 
-      {/* Modal Tambah/Edit */}
    {/* Modal Tambah/Edit */}
       {showModal && (
         <div
@@ -171,37 +186,70 @@ const confirmDelete = () => {
               {editingId ? 'Edit Peserta' : 'Tambah Peserta Baru'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.nama}
-                  onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Jabatan</label>
-                <input
-                  type="text"
-                  required
-                  value={formData.jabatan}
-                  onChange={(e) => setFormData({ ...formData, jabatan: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">No. WhatsApp</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="081234567890"
-                  value={formData.noWa}
-                  onChange={(e) => setFormData({ ...formData, noWa: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
-                />
-              </div>
+              {!editingId && (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+    <input
+      type="text"
+      required
+      value={formData.username}
+      onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+    />
+  </div>
+)}
+{!editingId && (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+    <input
+      type="password"
+      required
+      value={formData.password}
+      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+    />
+  </div>
+)}
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+  <input
+    type="text"
+    required
+    value={formData.nama}
+    onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+  />
+</div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+  <select
+    required
+    value={formData.role}
+    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+  >
+    {ROLE_OPTIONS.map((r) => <option key={r} value={r}>{r}</option>)}
+  </select>
+</div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">Bidang</label>
+  <input
+    type="text"
+    value={formData.bidang}
+    onChange={(e) => setFormData({ ...formData, bidang: e.target.value })}
+    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+  />
+</div>
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">No. WhatsApp</label>
+  <input
+    type="text"
+    placeholder="081234567890"
+    value={formData.noWa}
+    onChange={(e) => setFormData({ ...formData, noWa: e.target.value })}
+    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+  />
+</div>
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
