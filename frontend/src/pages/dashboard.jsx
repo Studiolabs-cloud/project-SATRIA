@@ -1,36 +1,30 @@
-// frontend/src/pages/Dashboard.jsx
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import api from '../services/api';
 
-export default function Dashboard() {
+  export default function Dashboard() {
   const { user } = useAuth();
+  const bisaInputKegiatan = user?.role === 'Admin';
 
-  // Data dummy dulu, nanti diganti fetch dari API
-  const [stats] = useState({
-    totalSemua: 31,
-    totalTerkini: 5,
-    totalBulanIni: 12,
-  });
+  const [stats, setStats] = useState({ totalSemua: 0, totalTerkini: 0, totalBulanIni: 0 });
+  const [agendaHariIni, setAgendaHariIni] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [agendaHariIni] = useState([
-    {
-      hari: 'Kamis, 04-06-2026',
-      jam: '08:30 WIB s.d Selesai',
-      acara: 'Rapat Koordinasi Pertanahan',
-      tempat: 'Ruang Rapat Dinas',
-      pesertaCount: 5,
-    },
-    {
-      hari: 'Kamis, 04-06-2026',
-      jam: '13:00 WIB s.d Selesai',
-      acara: 'Sosialisasi Program Sertifikasi Tanah',
-      tempat: 'Aula Kantor Dinas',
-      pesertaCount: 8,
-    },
-  ]);
-const bisaInputKegiatan = user?.role === 'Admin';
-  return (
+  useEffect(() => {
+    Promise.all([
+      api.get('/agenda/stats'),
+      api.get('/agenda/hari-ini'),
+    ])
+      .then(([statsRes, hariIniRes]) => {
+        setStats(statsRes.data);
+        setAgendaHariIni(hariIniRes.data);
+      })
+      .catch((err) => console.error('Gagal ambil data dashboard:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const formatTanggal = (dateStr) =>
+    new Date(dateStr).toLocaleDateString('id-ID', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' });  return (
     <div className="p-6">
       {/* Header */}
       <div className="mb-6">
@@ -76,15 +70,27 @@ const bisaInputKegiatan = user?.role === 'Admin';
               </tr>
             </thead>
             <tbody>
-              {agendaHariIni.map((item, idx) => (
-                <tr key={idx} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="py-3 pr-4 text-gray-700">{item.hari}</td>
-                  <td className="py-3 pr-4 text-gray-700">{item.jam}</td>
-                  <td className="py-3 pr-4 text-gray-800 font-medium">{item.acara}</td>
-                  <td className="py-3 pr-4 text-gray-700">{item.tempat}</td>
-                  <td className="py-3 pr-4 text-gray-700">{item.pesertaCount} orang</td>
-                </tr>
-              ))}
+              {loading ? (
+  <tr>
+    <td colSpan={5} className="py-6 text-center text-gray-400">Memuat data...</td>
+  </tr>
+) : agendaHariIni.length === 0 ? (
+  <tr>
+    <td colSpan={5} className="py-6 text-center text-gray-400">Tidak ada agenda hari ini</td>
+  </tr>
+) : (
+  agendaHariIni.map((item) => (
+    <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
+      <td className="py-3 pr-4 text-gray-700">{formatTanggal(item.tanggalMulai)}</td>
+      <td className="py-3 pr-4 text-gray-700">
+        {item.jamMulai}{item.jamSelesai ? ` - ${item.jamSelesai}` : ' s.d Selesai'}
+      </td>
+      <td className="py-3 pr-4 text-gray-800 font-medium">{item.acara}</td>
+      <td className="py-3 pr-4 text-gray-700">{item.tempat}</td>
+      <td className="py-3 pr-4 text-gray-700">{item.peserta.length} orang</td>
+    </tr>
+  ))
+)}  
             </tbody>
           </table>
         </div>

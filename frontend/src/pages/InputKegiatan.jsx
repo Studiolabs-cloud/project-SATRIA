@@ -1,20 +1,23 @@
 // frontend/src/pages/InputKegiatan.jsx
 
-import { useState } from 'react';
-
-// Data dummy pegawai, nanti diganti fetch dari API master peserta
-const DUMMY_PEGAWAI = [
-  { id: 1, nama: 'Budi Santoso' },
-  { id: 2, nama: 'Siti Aminah' },
-  { id: 3, nama: 'Ahmad Fauzi' },
-  { id: 4, nama: 'Dewi Lestari' },
-  { id: 5, nama: 'Rudi Hartono' },
-  { id: 6, nama: 'Maya Sari' },
-];
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
+  
 
 export default function InputKegiatan() {
+  const navigate = useNavigate();
+  const [pegawaiList, setPegawaiList] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    api.get('/users')
+      .then((res) => setPegawaiList(res.data))
+      .catch((err) => console.error('Gagal ambil data user:', err));
+  }, []);
+
   const [form, setForm] = useState({
-    tanggalMulai: '',
+     tanggalMulai: '',
     tanggalSelesai: '',
     jamMulai: '',
     jamSelesai: '',
@@ -34,7 +37,7 @@ export default function InputKegiatan() {
 
   const toggleSemuaPegawai = () => {
     if (!semuaPegawai) {
-      setPesertaTerpilih(DUMMY_PEGAWAI.map((p) => p.id));
+      setPesertaTerpilih(pegawaiList.map((p) => p.id));
     } else {
       setPesertaTerpilih([]);
     }
@@ -51,17 +54,38 @@ export default function InputKegiatan() {
     setFileUndangan(e.target.files[0]);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const payload = {
-      ...form,
-      peserta: pesertaTerpilih,
-      fileUndangan: fileUndangan?.name || null,
-    };
-    console.log('Data yang akan disimpan:', payload);
-    alert('Kegiatan berhasil disimpan! (cek console untuk data lengkap)');
-    // Nanti di sini panggil API: axios.post('/api/agenda', payload)
-  };
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  try {
+    const formData = new FormData();
+    formData.append('tanggalMulai', form.tanggalMulai);
+    formData.append('tanggalSelesai', form.tanggalSelesai);
+    formData.append('jamMulai', form.jamMulai);
+    formData.append('jamSelesai', form.jamSelesai);
+    formData.append('acara', form.acara);
+    formData.append('tempat', form.tempat);
+    formData.append('undanganDari', form.undanganDari);
+    formData.append('keterangan', form.keterangan);
+    formData.append('pesertaIds', JSON.stringify(pesertaTerpilih));
+    if (fileUndangan) {
+      formData.append('fileUndangan', fileUndangan);
+    }
+
+    await api.post('/agenda', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    alert('Kegiatan berhasil disimpan!');
+    navigate('/rekap-semua');
+  } catch (error) {
+    console.error(error);
+    alert(error.response?.data?.message || 'Gagal menyimpan kegiatan');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   const handleBatal = () => {
     setForm({
@@ -217,7 +241,7 @@ export default function InputKegiatan() {
           </label>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2 border border-gray-100 rounded-lg p-3 max-h-48 overflow-y-auto">
-            {DUMMY_PEGAWAI.map((pegawai) => (
+            {pegawaiList.map((pegawai) => (
               <label key={pegawai.id} className="flex items-center gap-2 text-sm text-gray-700">
                 <input
                   type="checkbox"
@@ -258,12 +282,13 @@ export default function InputKegiatan() {
 
         {/* Tombol Aksi */}
         <div className="flex gap-3 pt-2">
-          <button
-            type="submit"
-            className="bg-blue-700 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-lg transition"
-          >
-            Simpan Kegiatan
-          </button>
+         <button
+  type="submit"
+  disabled={isSubmitting}
+  className="bg-blue-700 hover:bg-blue-800 disabled:bg-blue-400 text-white font-medium px-6 py-2.5 rounded-lg transition"
+>
+  {isSubmitting ? 'Menyimpan...' : 'Simpan Kegiatan'}
+</button>
           <button
             type="button"
             onClick={handleBatal}
@@ -275,4 +300,4 @@ export default function InputKegiatan() {
       </form>
     </div>
   );
-}
+} 

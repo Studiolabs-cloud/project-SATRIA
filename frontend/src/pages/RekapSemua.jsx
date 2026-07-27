@@ -1,58 +1,20 @@
 // frontend/src/pages/RekapSemua.jsx
 
-import { useState } from 'react';
-
-// Data dummy, nanti diganti fetch dari API
-const DUMMY_AGENDA = [
-  {
-    id: 1,
-    tanggalMulai: '2026-06-04',
-    tanggalSelesai: null,
-    jamMulai: '08:30',
-    jamSelesai: null,
-    acara: 'Rapat Koordinasi Pertanahan',
-    tempat: 'Ruang Rapat Dinas',
-    undanganDari: 'Sekretariat Daerah Kota Batam',
-    peserta: ['Budi Santoso', 'Siti Aminah', 'Ahmad Fauzi'],
-  },
-  {
-    id: 2,
-    tanggalMulai: '2026-06-04',
-    tanggalSelesai: null,
-    jamMulai: '13:00',
-    jamSelesai: null,
-    acara: 'Sosialisasi Program Sertifikasi Tanah',
-    tempat: 'Aula Kantor Dinas',
-    undanganDari: 'Dinas Pertanahan Kota Batam',
-    peserta: ['Dewi Lestari', 'Rudi Hartono', 'Maya Sari', 'Budi Santoso'],
-  },
-  {
-    id: 3,
-    tanggalMulai: '2026-06-10',
-    tanggalSelesai: '2026-06-11',
-    jamMulai: '09:00',
-    jamSelesai: '16:00',
-    acara: 'Bimbingan Teknis Pengukuran Tanah',
-    tempat: 'Hotel Harmoni One Batam',
-    undanganDari: 'Kementerian ATR/BPN',
-    peserta: ['Ahmad Fauzi', 'Maya Sari'],
-  },
-  {
-    id: 4,
-    tanggalMulai: '2026-06-15',
-    tanggalSelesai: null,
-    jamMulai: '10:00',
-    jamSelesai: '12:00',
-    acara: 'Audiensi Warga Terkait Sengketa Lahan',
-    tempat: 'Ruang Kepala Dinas',
-    undanganDari: 'Warga Kelurahan Sungai Jodoh',
-    peserta: ['Siti Aminah'],
-  },
-];
+import { useState, useEffect } from 'react';
+import api from '../services/api';
 
 export default function RekapSemua() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterBulan, setFilterBulan] = useState('');
+  const [agendaList, setAgendaList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/agenda')
+      .then((res) => setAgendaList(res.data))
+      .catch((err) => console.error('Gagal ambil data agenda:', err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const formatTanggal = (dateStr) => {
     if (!dateStr) return '-';
@@ -64,15 +26,15 @@ export default function RekapSemua() {
     });
   };
 
-  const dataFiltered = DUMMY_AGENDA.filter((item) => {
-    const matchSearch =
-      item.acara.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.tempat.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchBulan = filterBulan
-      ? item.tanggalMulai.slice(0, 7) === filterBulan
-      : true;
-    return matchSearch && matchBulan;
-  });
+ const dataFiltered = agendaList.filter((item) => {
+  const matchSearch =
+    item.acara.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.tempat.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchBulan = filterBulan
+    ? item.tanggalMulai.slice(0, 7) === filterBulan
+    : true;
+  return matchSearch && matchBulan;
+});
 
   const handleExportPDF = () => {
     alert('Fitur export PDF akan disambungkan ke backend nanti (generate PDF dari data rekap)');
@@ -123,9 +85,9 @@ export default function RekapSemua() {
       </div>
 
       {/* Info jumlah data */}
-      <p className="text-sm text-gray-500 mb-3">
-        Menampilkan {dataFiltered.length} dari {DUMMY_AGENDA.length} total kegiatan
-      </p>
+     <p className="text-sm text-gray-500 mb-3">
+  Menampilkan {dataFiltered.length} dari {agendaList.length} total kegiatan
+</p>
 
       {/* Tabel */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -143,7 +105,13 @@ export default function RekapSemua() {
               </tr>
             </thead>
             <tbody>
-              {dataFiltered.length === 0 ? (
+  {loading ? (
+    <tr>
+      <td colSpan={7} className="py-8 text-center text-gray-400">
+        Memuat data...
+      </td>
+    </tr>
+  ) : dataFiltered.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-8 text-center text-gray-400">
                     Tidak ada data kegiatan yang cocok dengan filter
@@ -168,9 +136,9 @@ export default function RekapSemua() {
                     <td className="py-3 px-4 text-gray-700">{item.tempat}</td>
                     <td className="py-3 px-4 text-gray-700">{item.undanganDari}</td>
                     <td className="py-3 px-4 text-gray-700">
-                      <span className="bg-blue-50 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
+                    <span className="bg-blue-50 text-blue-700 text-xs font-medium px-2 py-1 rounded-full">
                         {item.peserta.length} orang
-                      </span>
+                        </span>
                     </td>
                     <td className="py-3 px-4 text-center">
                       <button className="text-blue-700 hover:underline text-xs font-medium">
