@@ -1,6 +1,6 @@
 const prisma = require('../config/db');
 const bcrypt = require('bcrypt');
-
+const { logActivity } = require('../services/activityLog.service');
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await prisma.user.findMany({
@@ -34,7 +34,8 @@ exports.createUser = async (req, res) => {
       select: { id: true, username: true, nama: true, role: true, bidang: true, noWa: true },
     });
 
-    res.status(201).json({ message: 'Peserta berhasil ditambahkan', user });
+await logActivity(req.user.nama,req.user.role, `Menambahkan peserta baru: ${nama}`, req.user.id);
+res.status(201).json({ message: 'Peserta berhasil ditambahkan', user });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Gagal menambahkan peserta' });
@@ -62,7 +63,8 @@ exports.updateUser = async (req, res) => {
       select: { id: true, username: true, nama: true, role: true, bidang: true, noWa: true },
     });
 
-    res.json({ message: 'Peserta berhasil diperbarui', user });
+    await logActivity(req.user.nama,req.user.role, `Memperbarui data peserta: ${nama}`, req.user.id);
+res.json({ message: 'Peserta berhasil diperbarui', user });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Gagal memperbarui peserta' });
@@ -71,7 +73,9 @@ exports.updateUser = async (req, res) => {
 exports.deleteUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
+    const userLama = await prisma.user.findUnique({ where: { id } });
     await prisma.user.delete({ where: { id } });
+    await logActivity(req.user.nama, `Menghapus peserta: ${userLama?.nama || '(tidak diketahui)'}`, req.user.id);
     res.json({ message: 'Peserta berhasil dihapus' });
   } catch (error) {
     console.error(error);
@@ -88,6 +92,7 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ message: 'Password baru minimal 6 karakter' });
     }
 
+    const targetUser = await prisma.user.findUnique({ where: { id } });
     const passwordHash = await bcrypt.hash(newPassword, 10);
 
     await prisma.user.update({
@@ -95,6 +100,7 @@ exports.resetPassword = async (req, res) => {
       data: { passwordHash },
     });
 
+    await logActivity(req.user.nama,req.user.role, `Mereset password untuk: ${targetUser?.nama || '(tidak diketahui)'}`, req.user.id);
     res.json({ message: 'Password berhasil direset' });
   } catch (error) {
     console.error(error);

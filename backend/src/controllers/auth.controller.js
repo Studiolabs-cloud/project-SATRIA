@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const prisma = require('../config/db');
+const { logActivity } = require('../services/activityLog.service');
 
 exports.login = async (req, res) => {
   try {
@@ -23,10 +24,11 @@ exports.login = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: '8h' }
-    );
+  { id: user.id, username: user.username, nama: user.nama, role: user.role },
+  process.env.JWT_SECRET,
+  { expiresIn: '8h' }
+);
+    await logActivity(user.nama, user.role, 'login ke sistem', user.id);
 
     // Jangan kirim passwordHash ke frontend
     const { passwordHash, ...userData } = user;

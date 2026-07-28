@@ -1,5 +1,5 @@
 const prisma = require('../config/db');
-
+const { logActivity } = require('../services/activityLog.service');
 // GET semua agenda (dengan jumlah peserta)
 exports.getAllAgenda = async (req, res) => {
   try {
@@ -107,7 +107,8 @@ exports.createAgenda = async (req, res) => {
       include: { peserta: true },
     });
 
-    res.status(201).json({ message: 'Agenda berhasil dibuat', agenda });
+    await logActivity(req.user.username, req.user.role, `Menambahkan kegiatan: ${acara}`, req.user.id);
+res.status(201).json({ message: 'Agenda berhasil dibuat', agenda });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Gagal membuat agenda' });
@@ -120,11 +121,11 @@ exports.updateAgenda = async (req, res) => {
     const id = parseInt(req.params.id);
     const {
       tanggalMulai, tanggalSelesai, jamMulai, jamSelesai,
-      acara, tempat, undanganDari, keterangan,
+      acara, tempat, undanganDari, keterangan, pesertaIds,
     } = req.body;
 
     const dataUpdate = {
-      tanggalMulai: new Date(tanggalMulai),
+      tanggalMulai: tanggalMulai ? new Date(tanggalMulai) : undefined,
       tanggalSelesai: tanggalSelesai ? new Date(tanggalSelesai) : null,
       jamMulai,
       jamSelesai: jamSelesai || null,
@@ -138,12 +139,23 @@ exports.updateAgenda = async (req, res) => {
       dataUpdate.fileUndangan = req.file.filename;
     }
 
+    // Update field utama agenda
     const agenda = await prisma.agendaKegiatan.update({
       where: { id },
       data: dataUpdate,
     });
 
-    res.json({ message: 'Agenda berhasil diperbarui', agenda });
+    // Update relasi peserta: hapus semua yang lama, buat ulang sesuai pilihan baru
+    if (pesertaIds) {
+      const parsedPesertaIds = JSON.parse(pesertaIds);
+      await prisma.agendaPeserta.deleteMany({ where: { agendaId: id } });
+      await prisma.agendaPeserta.createMany({
+        data: parsedPesertaIds.map((userId) => ({ agendaId: id, userId: parseInt(userId) })),
+      });
+    }
+
+      await logActivity(req.user.nama, req.user.role, `memperbarui kegiatan: ${acara}`, req.user.id);
+res.json({ message: 'Agenda berhasil diperbarui', agenda });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Gagal memperbarui agenda' });
@@ -155,10 +167,12 @@ exports.deleteAgenda = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
 
-    // hapus dulu relasi peserta, baru agenda-nya (karena foreign key)
+    const agendaLama = await prisma.agendaKegiatan.findUnique({ where: { id } });
+
     await prisma.agendaPeserta.deleteMany({ where: { agendaId: id } });
     await prisma.agendaKegiatan.delete({ where: { id } });
 
+    await logActivity(req.user.nama, req.user.role, `Menghapus kegiatan: ${agendaLama?.acara || '(tidak diketahui)'}`, req.user.id);
     res.json({ message: 'Agenda berhasil dihapus' });
   } catch (error) {
     console.error(error);

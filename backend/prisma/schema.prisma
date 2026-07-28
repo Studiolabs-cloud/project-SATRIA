@@ -125,3 +125,12 @@ model RencanaLanjutan {
   deadline   DateTime?
   createdAt  DateTime         @default(now())
 }
+
+model ActivityLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?
+  namaUser   String
+  role       String   @default("Unknown")
+  aktivitas  String   @db.Text
+  createdAt  DateTime @default(now())
+}
