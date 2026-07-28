@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
+import { Link } from 'react-router-dom';
 // Sengaja dibuat beberapa tanggal yang sudah lewat untuk testing filter
 
 export default function RekapTerkini() {
@@ -48,8 +49,67 @@ export default function RekapTerkini() {
   );
 
   const handleExportPDF = () => {
-    alert('Fitur export PDF akan disambungkan ke backend nanti');
-  };
+  const tanggalCetak = new Date().toLocaleDateString('id-ID', {
+    day: '2-digit', month: 'long', year: 'numeric',
+  });
+
+  const rows = dataFiltered.map((item, idx) => `
+    <tr>
+      <td>${idx + 1}</td>
+      <td>${formatTanggal(item.tanggalMulai)}${item.tanggalSelesai ? ' s.d ' + formatTanggal(item.tanggalSelesai) : ''}</td>
+      <td>${item.jamMulai}${item.jamSelesai ? ' - ' + item.jamSelesai : ' s.d Selesai'}</td>
+      <td>${item.acara}</td>
+      <td>${item.tempat}</td>
+      <td>${item.peserta.length} orang</td>
+    </tr>
+  `).join('');
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>Rekap Kegiatan Terkini</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 24px; color: #1f2937; }
+        h1 { font-size: 18px; margin-bottom: 4px; }
+        p.subtitle { font-size: 12px; color: #6b7280; margin-top: 0; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; }
+        th { background-color: #f3f4f6; }
+        .footer { margin-top: 24px; font-size: 10px; color: #9ca3af; }
+      </style>
+    </head>
+    <body>
+      <h1>Rekap Kegiatan Terkini</h1>
+      <p class="subtitle">Bappeda Kota Batam &mdash; Dicetak pada ${tanggalCetak}</p>
+      <table>
+        <thead>
+          <tr>
+            <th>No</th>
+            <th>Tanggal</th>
+            <th>Jam</th>
+            <th>Acara/Kegiatan</th>
+            <th>Tempat</th>
+            <th>Peserta</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows || '<tr><td colspan="6" style="text-align:center;">Tidak ada data</td></tr>'}
+        </tbody>
+      </table>
+      <p class="footer">Dokumen ini dibuat otomatis oleh Sistem SATRIA BATAM</p>
+    </body>
+    </html>
+  `;
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(htmlContent);
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+  }, 300);
+};
 
   // Hitung berapa hari lagi
   const hitungSisaHari = (tanggalMulai) => {
@@ -158,11 +218,11 @@ export default function RekapTerkini() {
                           {sisaHari.label}
                         </span>
                       </td>
-                      <td className="py-3 px-4 text-center">
-                        <button className="text-blue-700 hover:underline text-xs font-medium">
-                          Detail
-                        </button>
-                      </td>
+                     <td className="py-3 px-4 text-center">
+  <Link to={`/agenda/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium">
+    Detail
+  </Link>
+</td>
                     </tr>
                   );
                 })

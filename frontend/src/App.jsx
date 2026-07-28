@@ -9,6 +9,7 @@ import InputKegiatan from './pages/InputKegiatan';
 import RekapSemua from './pages/RekapSemua';
 import RekapTerkini from './pages/RekapTerkini';
 import MasterPeserta from './pages/MasterPeserta';
+import DetailAgenda from './pages/DetailAgenda';
 
 import DashboardNaskah from './pages/naskah/DashboardNaskah';
 import InputSuratMasuk from './pages/naskah/InputSuratMasuk';
@@ -22,6 +23,7 @@ import DashboardCatatan from './pages/catatan/DashboardCatatan';
 import DaftarKegiatan from './pages/catatan/DaftarKegiatan';
 import DetailKegiatanCatatan from './pages/catatan/DetailKegiatanCatatan';
 
+import LogAktivitas from './pages/LogAktivitas';
 function App() {
   return (
     <AuthProvider>
@@ -43,6 +45,7 @@ function App() {
                     <Route path="/rekap-semua" element={<RekapSemua />} />
                     <Route path="/rekap-terkini" element={<RekapTerkini />} />
                     <Route path="/master-peserta" element={<MasterPeserta />} />
+                    <Route path="/agenda/detail/:id" element={<DetailAgenda />} />
 
                     {/* Modul Naskah */}
                     <Route path="/naskah" element={<DashboardNaskah />} />
@@ -57,6 +60,9 @@ function App() {
                     <Route path="/catatan" element={<DashboardCatatan />} />
                     <Route path="/catatan/daftar-kegiatan" element={<DaftarKegiatan />} />
                     <Route path="/catatan/detail/:id" element={<DetailKegiatanCatatan />} />
+
+                    {/** Modul Log Aktivitas */}
+                    <Route path="/log-aktivitas" element={<LogAktivitas />} />
                   </Routes>
                 </MainLayout>
               </ProtectedRoute>

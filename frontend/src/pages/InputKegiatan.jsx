@@ -179,7 +179,7 @@ export default function InputKegiatan() {
             onChange={handleChange}
             required
             rows={3}
-            placeholder="Contoh: Rapat koordinasi dan pembahasan tindak lanjut terkait pelaksanaan program pertanahan"
+            placeholder="Contoh: Rapat koordinasi dan pembahasan dokumen perencanaan"
             className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
           />
         </div>

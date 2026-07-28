@@ -14,8 +14,7 @@ const MODULES = {
     { label: 'Input Kegiatan', path: '/input-kegiatan', icon: '➕', allowedRoles: ['Admin'] },
     { label: 'Rekap Semua', path: '/rekap-semua', icon: '📋' },
     { label: 'Rekap Terkini', path: '/rekap-terkini', icon: '🕐' },
-    { label: 'Master Peserta', path: '/master-peserta', icon: '👥', allowedRoles: ['Admin'] },
-  ],
+    ],
 },
  naskah: {
     label: 'Naskah/Persuratan',
@@ -39,10 +38,29 @@ const MODULES = {
       { label: 'Daftar Kegiatan', path: '/catatan/daftar-kegiatan', icon: '📋' },
     ],
   },
+Masterpegawai: {
+  label: 'Master Pegawai',
+  icon: '👥',
+  basePath: '/master-peserta',
+  allowedRoles: ['Admin'],
+  menu: [
+    { label: 'Master Pegawai', path: '/master-peserta', icon: '👥' },
+  ],
+},
+logAktivitas: {
+  label: 'Log Aktivitas',
+  icon: '📜',
+  basePath: '/log-aktivitas',
+  allowedRoles: ['Admin'],
+  menu: [
+    { label: 'Log Aktivitas', path: '/log-aktivitas', icon: '📜' },
+  ],
+},
 };
 function getActiveModuleKey(pathname) {
   if (pathname.startsWith('/naskah')) return 'naskah';
   if (pathname.startsWith('/catatan')) return 'catatan';
+  if (pathname.startsWith('/log-aktivitas')) return 'logAktivitas';
   return 'agenda';
 }
 
