@@ -35,7 +35,9 @@ model AgendaKegiatan {
   createdBy      User      @relation("AgendaCreatedBy", fields: [createdById], references: [id])
   createdAt      DateTime  @default(now())
 
-  peserta AgendaPeserta[]
+  peserta         AgendaPeserta[]
+  notulen         Notulen?
+  rencanaLanjutan RencanaLanjutan?
 }
 
 model AgendaPeserta {
@@ -95,35 +97,26 @@ model Delegasi {
   createdAt          DateTime  @default(now())
 }
 
-model KegiatanInternal {
-  id      Int      @id @default(autoincrement())
-  tanggal DateTime
-  acara   String
-  tempat  String
-  peserta String   @db.Text
-
-  notulen         Notulen?
-  rencanaLanjutan RencanaLanjutan?
-}
-
 model Notulen {
-  id         Int              @id @default(autoincrement())
-  kegiatanId Int              @unique
-  kegiatan   KegiatanInternal @relation(fields: [kegiatanId], references: [id])
-  catatan    String           @db.Text
-  file       String?
-  terkunci   Boolean          @default(false)
-  createdAt  DateTime         @default(now())
+  id             Int            @id @default(autoincrement())
+  agendaId       Int            @unique
+  agenda         AgendaKegiatan @relation(fields: [agendaId], references: [id])
+  catatan        String         @db.Text
+  file           String?
+  terkunci       Boolean        @default(false)
+  requestEdit    Boolean        @default(false)
+  alasanEdit     String?        @db.Text
+  createdAt      DateTime       @default(now())
 }
 
 model RencanaLanjutan {
-  id         Int              @id @default(autoincrement())
-  kegiatanId Int              @unique
-  kegiatan   KegiatanInternal @relation(fields: [kegiatanId], references: [id])
-  uraian     String           @db.Text
-  pic        String?
-  deadline   DateTime?
-  createdAt  DateTime         @default(now())
+  id        Int            @id @default(autoincrement())
+  agendaId  Int            @unique
+  agenda    AgendaKegiatan @relation(fields: [agendaId], references: [id])
+  uraian    String         @db.Text
+  pic       String?
+  deadline  DateTime?
+  createdAt DateTime       @default(now())
 }
 
 model ActivityLog {

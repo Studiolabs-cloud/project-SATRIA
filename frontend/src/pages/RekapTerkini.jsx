@@ -53,16 +53,22 @@ export default function RekapTerkini() {
     day: '2-digit', month: 'long', year: 'numeric',
   });
 
-  const rows = dataFiltered.map((item, idx) => `
+  const rows = dataFiltered.map((item, idx) => {
+  const namaPeserta = item.peserta
+    .map((p, i) => `${i + 1}. ${p.user?.nama || '-'}`)
+    .join('<br>');
+
+  return `
     <tr>
       <td>${idx + 1}</td>
       <td>${formatTanggal(item.tanggalMulai)}${item.tanggalSelesai ? ' s.d ' + formatTanggal(item.tanggalSelesai) : ''}</td>
       <td>${item.jamMulai}${item.jamSelesai ? ' - ' + item.jamSelesai : ' s.d Selesai'}</td>
       <td>${item.acara}</td>
       <td>${item.tempat}</td>
-      <td>${item.peserta.length} orang</td>
+      <td>${namaPeserta || '-'}</td>
     </tr>
-  `).join('');
+  `;
+}).join('');
 
   const htmlContent = `
     <!DOCTYPE html>
