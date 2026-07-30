@@ -7,6 +7,7 @@ const authRoutes = require('./src/routes/auth.routes');
 const agendaRoutes = require('./src/routes/agenda.routes');
 const usersRoutes = require('./src/routes/users.routes');
 const catatanRoutes = require('./src/routes/catatan.routes');
+const naskahRoutes = require('./src/routes/naskah.routes');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -21,6 +22,7 @@ app.use('/api/catatan', catatanRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/agenda', agendaRoutes);
 app.use('/api/users', usersRoutes);
+app.use('/api/naskah', naskahRoutes);
 app.listen(PORT, () => {
   console.log(`Server jalan di http://localhost:${PORT}`);
 });

@@ -1,28 +1,30 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-// Data dummy, nanti fetch dari API
-const DUMMY_KEGIATAN = [
-  { id: 1, tanggal: '2026-07-21', acara: 'Rapat Koordinasi Pertanahan', tempat: 'Ruang Rapat Dinas', hasNotulen: true, hasLanjutan: false },
-  { id: 2, tanggal: '2026-07-20', acara: 'Sosialisasi Program Sertifikasi Tanah', tempat: 'Aula Kantor Dinas', hasNotulen: false, hasLanjutan: false },
-  { id: 3, tanggal: '2026-07-18', acara: 'Audiensi Warga Terkait Sengketa Lahan', tempat: 'Ruang Kepala Dinas', hasNotulen: true, hasLanjutan: true },
-  { id: 4, tanggal: '2026-07-15', acara: 'Bimbingan Teknis Pengukuran Tanah', tempat: 'Hotel Harmoni One Batam', hasNotulen: false, hasLanjutan: false },
-];
+import api from '../../services/api';
 
 export default function DaftarKegiatan() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterNotulen, setFilterNotulen] = useState('');
+  const [kegiatanList, setKegiatanList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/catatan')
+      .then((res) => setKegiatanList(res.data))
+      .catch((err) => console.error('Gagal ambil data kegiatan:', err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const formatTanggal = (dateStr) =>
     new Date(dateStr).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
-  const dataFiltered = DUMMY_KEGIATAN.filter((item) => {
-    const matchSearch = item.acara.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchNotulen =
-      filterNotulen === 'ada' ? item.hasNotulen :
-      filterNotulen === 'belum' ? !item.hasNotulen : true;
-    return matchSearch && matchNotulen;
-  });
+  const dataFiltered = kegiatanList.filter((item) => {
+  const matchSearch = item.acara.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchNotulen =
+    filterNotulen === 'ada' ? !!item.notulen :
+    filterNotulen === 'belum' ? !item.notulen : true;
+  return matchSearch && matchNotulen;
+});
 
   return (
     <div className="p-6">
@@ -52,8 +54,8 @@ export default function DaftarKegiatan() {
       </div>
 
       <p className="text-sm text-gray-500 mb-3">
-        Menampilkan {dataFiltered.length} dari {DUMMY_KEGIATAN.length} kegiatan
-      </p>
+  Menampilkan {dataFiltered.length} dari {kegiatanList.length} kegiatan
+</p>
 
       {/* Tabel */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -70,50 +72,54 @@ export default function DaftarKegiatan() {
               </tr>
             </thead>
             <tbody>
-              {dataFiltered.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-400">
-                    Tidak ada kegiatan yang cocok
-                  </td>
-                </tr>
-              ) : (
-                dataFiltered.map((item) => (
-                  <tr
-                    key={item.id}
-                    className={`border-t border-gray-50 hover:bg-gray-50 ${!item.hasNotulen ? 'bg-red-50/40' : ''}`}
-                  >
-                    <td className="py-3 px-4 text-gray-700 whitespace-nowrap">{formatTanggal(item.tanggal)}</td>
-                    <td className="py-3 px-4 text-gray-800 font-medium">{item.acara}</td>
-                    <td className="py-3 px-4 text-gray-700">{item.tempat}</td>
-                    <td className="py-3 px-4">
-                      {item.hasNotulen ? (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-50 text-green-700">
-                          ✓ Ada
-                        </span>
-                      ) : (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-red-100 text-red-700">
-                          ⚠ Belum Ada
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4">
-                      {item.hasLanjutan ? (
-                        <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700">
-                          Ada
-                        </span>
-                      ) : (
-                        <span className="text-xs text-gray-400">-</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-center">
-                      <Link to={`/catatan/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium">
-                        {item.hasNotulen ? 'Lihat Detail' : 'Isi Notulen'}
-                      </Link>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
+  {loading ? (
+    <tr>
+      <td colSpan={6} className="py-8 text-center text-gray-400">Memuat data...</td>
+    </tr>
+  ) : dataFiltered.length === 0 ? (
+    <tr>
+      <td colSpan={6} className="py-8 text-center text-gray-400">
+        Tidak ada kegiatan yang cocok
+      </td>
+    </tr>
+  ) : (
+    dataFiltered.map((item) => (
+      <tr
+        key={item.id}
+        className={`border-t border-gray-50 hover:bg-gray-50 ${!item.notulen ? 'bg-red-50/40' : ''}`}
+      >
+        <td className="py-3 px-4 text-gray-700 whitespace-nowrap">{formatTanggal(item.tanggalMulai)}</td>
+        <td className="py-3 px-4 text-gray-800 font-medium">{item.acara}</td>
+        <td className="py-3 px-4 text-gray-700">{item.tempat}</td>
+        <td className="py-3 px-4">
+          {item.notulen ? (
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-50 text-green-700">
+              ✓ Ada
+            </span>
+          ) : (
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-red-100 text-red-700">
+              ⚠ Belum Ada
+            </span>
+          )}
+        </td>
+        <td className="py-3 px-4">
+          {item.rencanaLanjutan ? (
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700">
+              Ada
+            </span>
+          ) : (
+            <span className="text-xs text-gray-400">-</span>
+          )}
+        </td>
+        <td className="py-3 px-4 text-center">
+          <Link to={`/catatan/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium">
+            {item.notulen ? 'Lihat Detail' : 'Isi Notulen'}
+          </Link>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
           </table>
         </div>
       </div>

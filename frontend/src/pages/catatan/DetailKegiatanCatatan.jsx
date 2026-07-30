@@ -1,36 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-
-// Data dummy, nanti fetch dari API berdasarkan :id
-const DUMMY_KEGIATAN = {
-  id: 1,
-  tanggal: '2026-07-21',
-  acara: 'Rapat Koordinasi Pertanahan',
-  tempat: 'Ruang Rapat Dinas',
-  peserta: ['Budi Santoso', 'Siti Aminah', 'Ahmad Fauzi'],
-};
+import api from '../../services/api'; 
 
 export default function DetailKegiatanCatatan() {
   const { id } = useParams();
   const { user } = useAuth();
 
+  const [kegiatan, setKegiatan] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   const [catatan, setCatatan] = useState('');
   const [fileNotulen, setFileNotulen] = useState(null);
-  const [terkunci, setTerkunci] = useState(false);
   const [showRequestEdit, setShowRequestEdit] = useState(false);
   const [alasanEdit, setAlasanEdit] = useState('');
 
   const [uraianLanjutan, setUraianLanjutan] = useState('');
   const [picLanjutan, setPicLanjutan] = useState('');
   const [deadlineLanjutan, setDeadlineLanjutan] = useState('');
-  const [lanjutanTersimpan, setLanjutanTersimpan] = useState(false);
 
   const [toast, setToast] = useState(null);
 
-  // Kepala Bidang wajib upload file, staf biasa cukup isi catatan
   const wajibUploadFile = user?.role === 'Kepala Bidang';
   const bisaMengisi = ['Admin', 'Kepala Bidang', 'Pelaksana'].includes(user?.role);
+
+  const fetchKegiatan = () => {
+    api.get(`/catatan/${id}`)
+      .then((res) => setKegiatan(res.data))
+      .catch((err) => console.error('Gagal ambil detail kegiatan:', err))
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+  fetchKegiatan();
+}, [id]);
+
+useEffect(() => {
+  if (kegiatan?.notulen) {
+    setCatatan(kegiatan.notulen.catatan || '');
+  }
+}, [kegiatan]);
+
   const formatTanggal = (dateStr) =>
     new Date(dateStr).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' });
 
@@ -45,7 +55,7 @@ export default function DetailKegiatanCatatan() {
     setFileNotulen(e.target.files[0]);
   };
 
- const handleSimpanNotulen = () => {
+ const handleSimpanNotulen = async () => {
   if (!catatan.trim()) {
     showToast('Isi catatan kegiatan terlebih dahulu.', 'warning');
     return;
@@ -54,31 +64,65 @@ export default function DetailKegiatanCatatan() {
     showToast('Kepala Bidang wajib mengunggah file notulen.', 'warning');
     return;
   }
-    console.log('Notulen tersimpan:', { kegiatanId: id, catatan, file: fileNotulen?.name });
-    setTerkunci(true);
-    showToast('Notulen berhasil disimpan dan dikunci');
-  };
+  try {
+    const formData = new FormData();
+    formData.append('catatan', catatan);
+    if (fileNotulen) formData.append('file', fileNotulen);
 
- const handleKirimPermintaanEdit = () => {
+    await api.post(`/catatan/${id}/notulen`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    showToast('Notulen berhasil disimpan dan dikunci');
+    fetchKegiatan();
+  } catch (error) {
+    showToast(error.response?.data?.message || 'Gagal menyimpan notulen', 'warning');
+  }
+};
+
+ const handleKirimPermintaanEdit = async () => {
   if (!alasanEdit.trim()) {
     showToast('Jelaskan bagian yang perlu diperbaiki.', 'warning');
     return;
   }
-    console.log('Permintaan edit dikirim:', { kegiatanId: id, alasan: alasanEdit });
+  try {
+    await api.put(`/catatan/${id}/notulen/minta-edit`, { alasan: alasanEdit });
     showToast('Permintaan edit telah dikirim ke Admin');
     setShowRequestEdit(false);
     setAlasanEdit('');
-  };
+    fetchKegiatan();
+  } catch (error) {
+    showToast(error.response?.data?.message || 'Gagal mengirim permintaan edit', 'warning');
+  }
+};
 
- const handleSimpanLanjutan = () => {
+ const handleSimpanLanjutan = async () => {
   if (!uraianLanjutan.trim()) {
     showToast('Isi uraian tindak lanjut terlebih dahulu.', 'warning');
     return;
   }
-    console.log('Lanjutan tersimpan:', { kegiatanId: id, uraianLanjutan, picLanjutan, deadlineLanjutan });
-    setLanjutanTersimpan(true);
+  try {
+    await api.post(`/catatan/${id}/rencana-lanjutan`, {
+      uraian: uraianLanjutan,
+      pic: picLanjutan,
+      deadline: deadlineLanjutan || null,
+    });
     showToast('Rencana tindak lanjut berhasil disimpan');
-  };
+    fetchKegiatan();
+  } catch (error) {
+    showToast(error.response?.data?.message || 'Gagal menyimpan rencana lanjutan', 'warning');
+  }
+};
+
+ if (loading) {
+    return <div className="p-6 text-center text-gray-400">Memuat data...</div>;
+  }
+
+  if (!kegiatan) {
+    return <div className="p-6 text-center text-gray-400">Kegiatan tidak ditemukan</div>;
+  }
+
+  const terkunci = kegiatan.notulen?.terkunci || false;
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -90,22 +134,24 @@ export default function DetailKegiatanCatatan() {
 
       {/* Info Kegiatan */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-5">
-        <h1 className="text-xl font-bold text-gray-800 mb-1">{DUMMY_KEGIATAN.acara}</h1>
+        <h1 className="text-xl font-bold text-gray-800 mb-1">{kegiatan.acara}</h1>
         <p className="text-gray-500 text-sm mb-4">Detail kegiatan dan pengisian notulen</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm border-t border-gray-100 pt-4">
           <div>
-            <p className="text-gray-400 text-xs mb-0.5">Tanggal</p>
-            <p className="text-gray-800 font-medium">{formatTanggal(DUMMY_KEGIATAN.tanggal)}</p>
-          </div>
-          <div>
-            <p className="text-gray-400 text-xs mb-0.5">Tempat</p>
-            <p className="text-gray-800 font-medium">{DUMMY_KEGIATAN.tempat}</p>
-          </div>
-          <div className="md:col-span-2">
-            <p className="text-gray-400 text-xs mb-0.5">Peserta</p>
-            <p className="text-gray-800 font-medium">{DUMMY_KEGIATAN.peserta.join(', ')}</p>
-          </div>
+  <p className="text-gray-400 text-xs mb-0.5">Tanggal</p>
+  <p className="text-gray-800 font-medium">{formatTanggal(kegiatan.tanggalMulai)}</p>
+</div>
+<div>
+  <p className="text-gray-400 text-xs mb-0.5">Tempat</p>
+  <p className="text-gray-800 font-medium">{kegiatan.tempat}</p>
+</div>
+<div className="md:col-span-2">
+  <p className="text-gray-400 text-xs mb-0.5">Peserta</p>
+  <p className="text-gray-800 font-medium">
+    {kegiatan.peserta?.map((p) => p.user.nama).join(', ') || '-'}
+  </p>
+</div>
         </div>
       </div>
 
@@ -211,19 +257,20 @@ export default function DetailKegiatanCatatan() {
   <h2 className="text-lg font-bold text-gray-800 mb-1">🔄 Rencana Tindak Lanjut</h2>
   <p className="text-gray-500 text-sm mb-4">Isi jika kegiatan menghasilkan rencana lanjutan</p>
 
-  {!bisaMengisi && !lanjutanTersimpan && (
-    <p className="text-sm text-gray-400 italic">Belum ada rencana tindak lanjut.</p>
-  )}
+  {!bisaMengisi && !kegiatan.rencanaLanjutan && (
+  <p className="text-sm text-gray-400 italic">Belum ada rencana tindak lanjut.</p>
+)}
 
-  {lanjutanTersimpan ? (
-          <div className="bg-purple-50 text-purple-800 rounded-lg p-4 text-sm">
-            <p className="font-semibold mb-1">✓ Rencana Lanjutan Tersimpan</p>
-            <p className="mb-1">{uraianLanjutan}</p>
-            <p className="text-xs opacity-80">
-              PIC: {picLanjutan || '-'} {deadlineLanjutan && `• Batas waktu: ${formatTanggal(deadlineLanjutan)}`}
-            </p>
-          </div>
-        ) : bisaMengisi ? (
+  {kegiatan.rencanaLanjutan ? (
+  <div className="bg-purple-50 text-purple-800 rounded-lg p-4 text-sm">
+    <p className="font-semibold mb-1">✓ Rencana Lanjutan Tersimpan</p>
+    <p className="mb-1">{kegiatan.rencanaLanjutan.uraian}</p>
+    <p className="text-xs opacity-80">
+      PIC: {kegiatan.rencanaLanjutan.pic || '-'}
+      {kegiatan.rencanaLanjutan.deadline && ` • Batas waktu: ${formatTanggal(kegiatan.rencanaLanjutan.deadline)}`}
+    </p>
+  </div>
+) : bisaMengisi ? (
           <>
             <div className="mb-3">
               <label className="block text-sm font-medium text-gray-700 mb-1">Uraian Tindak Lanjut</label>

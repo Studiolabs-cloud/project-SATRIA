@@ -1,21 +1,25 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-// Data dummy, nanti fetch dari API
-const STATS = {
-  totalKegiatan: 37,
-  baru: 16,
-  denganNotulen: 11,
-  tanpaNotulen: 26,
-  denganLanjutan: 0,
-};
-
-const KEGIATAN_TERBARU = [
-  { id: 1, tanggal: '2026-07-21', acara: 'Rapat Koordinasi Pertanahan', hasNotulen: true, hasLanjutan: false },
-  { id: 2, tanggal: '2026-07-20', acara: 'Sosialisasi Program Sertifikasi Tanah', hasNotulen: false, hasLanjutan: false },
-  { id: 3, tanggal: '2026-07-18', acara: 'Audiensi Warga Terkait Sengketa Lahan', hasNotulen: true, hasLanjutan: true },
-];
+import api from '../../services/api';
 
 export default function DashboardCatatan() {
+  const [stats, setStats] = useState({ totalKegiatan: 0, baru: 0, denganNotulen: 0, tanpaNotulen: 0, denganLanjutan: 0 });
+  const [kegiatanTerbaru, setKegiatanTerbaru] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/catatan/stats'),
+      api.get('/catatan'),
+    ])
+      .then(([statsRes, kegiatanRes]) => {
+        setStats(statsRes.data);
+        setKegiatanTerbaru(kegiatanRes.data.slice(0, 5)); // ambil 5 terbaru saja
+      })
+      .catch((err) => console.error('Gagal ambil data dashboard catatan:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
   const formatTanggal = (dateStr) =>
     new Date(dateStr).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -44,11 +48,11 @@ export default function DashboardCatatan() {
 
       {/* Kotak Monitoring */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <StatCard icon="📊" label="Total Kegiatan" value={STATS.totalKegiatan} color="text-gray-800" />
-        <StatCard icon="🆕" label="Baru" value={STATS.baru} color="text-blue-600" />
-        <StatCard icon="📝" label="Dengan Notulen" value={STATS.denganNotulen} color="text-green-600" />
-        <StatCard icon="⚠️" label="Tanpa Notulen" value={STATS.tanpaNotulen} color="text-red-600" />
-        <StatCard icon="🔄" label="Dengan Lanjutan" value={STATS.denganLanjutan} color="text-purple-600" />
+       <StatCard icon="📊" label="Total Kegiatan" value={stats.totalKegiatan} color="text-gray-800" />
+<StatCard icon="🆕" label="Baru" value={stats.baru} color="text-blue-600" />
+<StatCard icon="📝" label="Dengan Notulen" value={stats.denganNotulen} color="text-green-600" />
+<StatCard icon="⚠️" label="Tanpa Notulen" value={stats.tanpaNotulen} color="text-red-600" />
+<StatCard icon="🔄" label="Dengan Lanjutan" value={stats.denganLanjutan} color="text-purple-600" />
       </div>
 
       {/* Kegiatan Terbaru */}
@@ -58,10 +62,7 @@ export default function DashboardCatatan() {
             <h2 className="text-lg font-semibold text-gray-800">Kegiatan Terbaru</h2>
             <p className="text-gray-400 text-sm">Daftar kegiatan internal yang dapat Anda kelola dan disikapi</p>
           </div>
-          <Link to="/catatan/daftar-kegiatan" className="text-sm text-blue-700 hover:underline whitespace-nowrap">
-            Buka Rekap Lengkap
-          </Link>
-        </div>
+          </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
@@ -75,38 +76,44 @@ export default function DashboardCatatan() {
               </tr>
             </thead>
             <tbody>
-              {KEGIATAN_TERBARU.map((item) => (
-                <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
-                  <td className="py-3 pr-4 text-gray-700 whitespace-nowrap">{formatTanggal(item.tanggal)}</td>
-                  <td className="py-3 pr-4 text-gray-800 font-medium">{item.acara}</td>
-                  <td className="py-3 pr-4">
-                    {item.hasNotulen ? (
-                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-50 text-green-700">
-                        ✓ Ada
-                      </span>
-                    ) : (
-                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-red-50 text-red-700">
-                        Belum Ada
-                      </span>
-                    )}
-                  </td>
-                  <td className="py-3 pr-4">
-                    {item.hasLanjutan ? (
-                      <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700">
-                        Ada
-                      </span>
-                    ) : (
-                      <span className="text-xs text-gray-400">-</span>
-                    )}
-                  </td>
-                  <td className="py-3 pr-4 text-center">
-                    <Link to={`/catatan/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium">
-                      Detail
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  {loading ? (
+    <tr><td colSpan={5} className="py-6 text-center text-gray-400">Memuat data...</td></tr>
+  ) : kegiatanTerbaru.length === 0 ? (
+    <tr><td colSpan={5} className="py-6 text-center text-gray-400">Belum ada kegiatan</td></tr>
+  ) : (
+    kegiatanTerbaru.map((item) => (
+      <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
+        <td className="py-3 pr-4 text-gray-700 whitespace-nowrap">{formatTanggal(item.tanggalMulai)}</td>
+        <td className="py-3 pr-4 text-gray-800 font-medium">{item.acara}</td>
+        <td className="py-3 pr-4">
+          {item.notulen ? (
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-green-50 text-green-700">
+              ✓ Ada
+            </span>
+          ) : (
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-red-50 text-red-700">
+              Belum Ada
+            </span>
+          )}
+        </td>
+        <td className="py-3 pr-4">
+          {item.rencanaLanjutan ? (
+            <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-50 text-purple-700">
+              Ada
+            </span>
+          ) : (
+            <span className="text-xs text-gray-400">-</span>
+          )}
+        </td>
+        <td className="py-3 pr-4 text-center">
+          <Link to={`/catatan/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium">
+            Detail
+          </Link>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
           </table>
         </div>
       </div>

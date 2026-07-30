@@ -16,8 +16,12 @@ model User {
   noWa          String?
   createdAt     DateTime @default(now())
 
-  agendaCreated AgendaKegiatan[] @relation("AgendaCreatedBy")
-  agendaPeserta AgendaPeserta[]
+  agendaCreated       AgendaKegiatan[] @relation("AgendaCreatedBy")
+  agendaPeserta       AgendaPeserta[]
+  suratCreated        SuratMasuk[]     @relation("SuratCreatedBy")
+  disposisiCreated    Disposisi[]      @relation("DisposisiCreatedBy")
+  delegasiCreated     Delegasi[]       @relation("DelegasiCreatedBy")
+  tindakLanjutCreated TindakLanjut[]   @relation("TindakLanjutCreatedBy")
 }
 
 model AgendaKegiatan {
@@ -60,11 +64,13 @@ model SuratMasuk {
   fileUtama            String?
   deadlineTindakLanjut DateTime?
   keteranganAdmin      String?   @db.Text
-  status               String    @default("draft")
+  status               String    @default("draft") // draft, submitted, menunggu_disposisi, proses, selesai
+  createdById          Int
+  createdBy            User      @relation("SuratCreatedBy", fields: [createdById], references: [id])
   createdAt            DateTime  @default(now())
 
-  lampiran  SuratLampiran[]
-  disposisi Disposisi[]
+  lampiran   SuratLampiran[]
+  disposisi  Disposisi[]
 }
 
 model SuratLampiran {
@@ -78,22 +84,41 @@ model Disposisi {
   id                Int        @id @default(autoincrement())
   suratId           Int
   surat             SuratMasuk @relation(fields: [suratId], references: [id])
-  instruksi         String     @db.Text
+  instruksi         String     @db.Text // JSON string array
   instruksiTambahan String?    @db.Text
   uraian            String?    @db.Text
   deadline          DateTime?
-  bidangTujuan      String     @db.Text
+  bidangTujuan      String     @db.Text // JSON string array, contoh: ["PPM","PSDA"]
+  createdById       Int
+  createdBy         User       @relation("DisposisiCreatedBy", fields: [createdById], references: [id])
   createdAt         DateTime   @default(now())
 
-  delegasi Delegasi[]
+  delegasi     Delegasi[]
+  tindakLanjut TindakLanjut?
 }
 
 model Delegasi {
   id                 Int       @id @default(autoincrement())
   disposisiId        Int
   disposisi          Disposisi @relation(fields: [disposisiId], references: [id])
-  pelaksanaIds       String    @db.Text
+  pelaksanaIds       String    @db.Text // JSON string array of user id
   dikerjakanLangsung Boolean   @default(false)
+  createdById        Int
+  createdBy          User      @relation("DelegasiCreatedBy", fields: [createdById], references: [id])
+  createdAt          DateTime  @default(now())
+}
+
+model TindakLanjut {
+  id                 Int       @id @default(autoincrement())
+  disposisiId        Int       @unique
+  disposisi          Disposisi @relation(fields: [disposisiId], references: [id])
+  uraianPekerjaan    String    @db.Text
+  buktiFiles         String?   @db.Text // JSON string array nama file
+  sudahDisubmit      Boolean   @default(false)
+  hasilVerifikasi    String?   // 'selesai' | 'kembalikan' | null
+  catatanVerifikasi  String?   @db.Text
+  createdById        Int
+  createdBy          User      @relation("TindakLanjutCreatedBy", fields: [createdById], references: [id])
   createdAt          DateTime  @default(now())
 }
 
