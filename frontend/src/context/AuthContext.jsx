@@ -8,14 +8,20 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   // Cek sesi tersimpan saat aplikasi pertama kali dibuka
-  useEffect(() => {
-    const savedUser = localStorage.getItem('satria_user');
-    const savedToken = localStorage.getItem('satria_token');
-    if (savedUser && savedToken) {
+ useEffect(() => {
+  const savedUser = localStorage.getItem('satria_user');
+  const savedToken = localStorage.getItem('satria_token');
+  if (savedUser && savedToken) {
+    try {
       setUser(JSON.parse(savedUser));
+    } catch (error) {
+      console.error('Data user tersimpan tidak valid, membersihkan sesi lama:', error);
+      localStorage.removeItem('satria_user');
+      localStorage.removeItem('satria_token');
     }
-    setLoading(false);
-  }, []);
+  }
+  setLoading(false);
+}, []);
 
   const login = async (username, password) => {
     try {

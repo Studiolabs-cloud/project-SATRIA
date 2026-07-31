@@ -108,13 +108,13 @@ useEffect(() => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
-      {/* SIDEBAR */}
-      <aside
-        className={`bg-blue-800 text-white flex flex-col transition-all duration-300 ease-in-out ${
-          collapsed ? 'w-20' : 'w-64'
-        } flex-shrink-0`}
-      >
+    <div className="h-screen flex bg-gray-50">
+
+  <aside
+    className={`${
+      collapsed ? 'w-20' : 'w-64'
+    } bg-blue-800 text-white flex flex-col flex-shrink-0`}
+  >
         {/* Header: Logo + Nama (klik untuk collapse/expand) */}
         <button
           onClick={() => setCollapsed((prev) => !prev)}
@@ -233,7 +233,9 @@ useEffect(() => {
       </aside>
 
       {/* KONTEN HALAMAN */}
-      <main className="flex-1 min-w-0 overflow-x-auto">{children}</main>
+       <main className="flex-1 overflow-y-auto overflow-x-hidden">
+    {children}
+  </main>
     </div>
   );
 }

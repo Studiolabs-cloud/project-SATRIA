@@ -1,12 +1,14 @@
 // frontend/src/pages/naskah/InputSuratMasuk.jsx
-
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../services/api';
 
 const SIFAT_OPTIONS = ['(-) Tidak ada', 'Biasa', 'Segera', 'Sangat Segera', 'Rahasia'];
 
 export default function InputSuratMasuk() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({
-    noUrut: '133',
+  noUrut: 'Auto',
     tglTerima: '',
     tglSurat: '',
     noSurat: '',
@@ -64,27 +66,47 @@ export default function InputSuratMasuk() {
     setLampiranFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
-  const buildPayload = () => ({
-  ...form,
-  fileUtama: fileUtama?.name || null,
-  fotoTersimpan: fotoTersimpan.map((f) => f.name),
-  lampiran: lampiranFiles.map((f) => f.name),
-});
+ const kirimSurat = async (statusValue) => {
+  try {
+    const formData = new FormData();
+    formData.append('tglTerima', form.tglTerima);
+    formData.append('tglSurat', form.tglSurat);
+    formData.append('noSurat', form.noSurat);
+    formData.append('hal', form.hal);
+    formData.append('asalSurat', form.asalSurat);
+    formData.append('sifat', form.sifat);
+    formData.append('deadlineTindakLanjut', form.deadlineTindakLanjut);
+    formData.append('keteranganAdmin', form.keteranganAdmin);
+    formData.append('status', statusValue);
+
+    if (fileUtama) {
+      formData.append('fileUtama', fileUtama);
+    } else if (fotoTersimpan.length > 0) {
+      // pakai foto pertama sebagai file utama (gabung PDF nanti bisa dikembangkan)
+      const response = await fetch(fotoTersimpan[0].url);
+      const blob = await response.blob();
+      formData.append('fileUtama', blob, fotoTersimpan[0].name);
+    }
+
+    await api.post('/naskah', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+
+    showToast(statusValue === 'draft' ? 'Naskah disimpan sebagai Draft' : 'Naskah sudah disubmit Ke Pimpinan');
+    setTimeout(() => navigate('/naskah/rekap-belum'), 1000);
+  } catch (error) {
+    showToast(error.response?.data?.message || 'Gagal menyimpan naskah', 'warning');
+  }
+};
 
 const handleSimpanDraft = (e) => {
   e.preventDefault();
-  const payload = { ...buildPayload(), status: 'draft' };
-  console.log('Draft tersimpan:', payload);
-  // Nanti: axios.post('/api/naskah/surat-masuk', payload)
-  showToast('Naskah disimpan sebagai Draft');
+  kirimSurat('draft');
 };
 
 const handleSubmit = (e) => {
   e.preventDefault();
-  const payload = { ...buildPayload(), status: 'submitted' };
-  console.log('Naskah disubmit:', payload);
-  // Nanti: axios.post('/api/naskah/surat-masuk', payload)
-  showToast('Naskah sudah disubmit Ke Pimpinan');
+  kirimSurat('submitted');
 };
 
  const handleKembali = () => {

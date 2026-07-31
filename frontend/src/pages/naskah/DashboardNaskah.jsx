@@ -1,22 +1,27 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-
-// Data dummy, nanti diganti fetch dari API
-const STATS = {
-  totalSuratMasuk: 25,
-  menungguDisposisi: 6,
-  sedangProses: 10,
-  selesai: 1,
-  belumDitindaklanjuti: 16,
-};
-
-const ALERT_DEADLINE = [
-  { id: 1, noSurat: '045/DP/2026', bidangTujuan: 'Pemanfaatan & Pengadaan Tanah', deadline: '2026-07-23', status: 'Belum Selesai' },
-  { id: 2, noSurat: '051/DP/2026', bidangTujuan: 'Penatagunaan Tanah', deadline: '2026-07-24', status: 'Proses' },
-  { id: 3, noSurat: '058/DP/2026', bidangTujuan: 'Sekretariat', deadline: '2026-07-25', status: 'Belum Selesai' },
-];
+import api from '../../services/api';
 
 export default function DashboardNaskah() {
+  const [stats, setStats] = useState({
+    totalSuratMasuk: 0, menungguDisposisi: 0, sedangProses: 0, selesai: 0, belumDitindaklanjuti: 0,
+  });
+  const [suratList, setSuratList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    Promise.all([
+      api.get('/naskah/stats'),
+      api.get('/naskah/untuk-saya'),
+    ])
+      .then(([statsRes, suratRes]) => {
+        setStats(statsRes.data);
+        setSuratList(suratRes.data);
+      })
+      .catch((err) => console.error('Gagal ambil data dashboard naskah:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
   const formatTanggal = (dateStr) =>
     new Date(dateStr).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
 
@@ -38,11 +43,11 @@ export default function DashboardNaskah() {
 
       {/* Kartu Statistik */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-        <StatCard icon="📥" label="Total Surat Masuk" value={STATS.totalSuratMasuk} color="text-gray-800" />
-        <StatCard icon="⏳" label="Menunggu Disposisi" value={STATS.menungguDisposisi} color="text-yellow-600" />
-        <StatCard icon="🔄" label="Sedang Proses" value={STATS.sedangProses} color="text-blue-600" />
-        <StatCard icon="✅" label="Selesai" value={STATS.selesai} color="text-green-600" />
-        <StatCard icon="⚠️" label="Belum Ditindaklanjuti" value={STATS.belumDitindaklanjuti} color="text-red-600" />
+        <StatCard icon="📥" label="Total Surat Masuk" value={stats.totalSuratMasuk} color="text-gray-800" />
+<StatCard icon="⏳" label="Menunggu Disposisi" value={stats.menungguDisposisi} color="text-yellow-600" />
+<StatCard icon="🔄" label="Sedang Proses" value={stats.sedangProses} color="text-blue-600" />
+<StatCard icon="✅" label="Selesai" value={stats.selesai} color="text-green-600" />
+<StatCard icon="⚠️" label="Belum Ditindaklanjuti" value={stats.belumDitindaklanjuti} color="text-red-600" />
       </div>
 
       {/* Alert Deadline */}
@@ -71,31 +76,45 @@ export default function DashboardNaskah() {
               </tr>
             </thead>
             <tbody>
-              {ALERT_DEADLINE.map((item) => {
-                const sisa = sisaHari(item.deadline);
-                return (
-                  <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
-                    <td className="py-3 pr-4">
-                      <span
-                        className={`text-xs font-medium px-2 py-1 rounded-full ${
-                          sisa < 0 ? 'bg-red-100 text-red-700' : 'bg-yellow-50 text-yellow-700'
-                        }`}
-                      >
-                        {formatTanggal(item.deadline)} {sisa < 0 ? `(Terlambat ${Math.abs(sisa)} hari)` : `(${sisa} hari lagi)`}
-                      </span>
-                    </td>
-                    <td className="py-3 pr-4 text-gray-800 font-medium">{item.noSurat}</td>
-                    <td className="py-3 pr-4 text-gray-700">{item.bidangTujuan}</td>
-                    <td className="py-3 pr-4 text-gray-700">{item.status}</td>
-                    <td className="py-3 pr-4 text-center">
-                      <Link to={`/naskah/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium">
-                        Detail
-                      </Link>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
+  {loading ? (
+    <tr><td colSpan={5} className="py-6 text-center text-gray-400">Memuat data...</td></tr>
+  ) : (() => {
+    const alertList = suratList.filter((s) => {
+      const belumSelesai = !s.disposisi?.some((d) => d.tindakLanjut?.hasilVerifikasi === 'selesai');
+      return s.deadlineTindakLanjut && belumSelesai;
+    });
+
+    if (alertList.length === 0) {
+      return <tr><td colSpan={5} className="py-6 text-center text-gray-400">Tidak ada surat dengan deadline mendekat</td></tr>;
+    }
+
+    return alertList.map((item) => {
+      const sisa = sisaHari(item.deadlineTindakLanjut);
+      const bidangTujuan = item.disposisi?.[0] ? JSON.parse(item.disposisi[0].bidangTujuan || '[]').join(', ') : '-';
+      return (
+        <tr key={item.id} className="border-b border-gray-50 hover:bg-gray-50">
+          <td className="py-3 pr-4">
+            <span
+              className={`text-xs font-medium px-2 py-1 rounded-full ${
+                sisa < 0 ? 'bg-red-100 text-red-700' : 'bg-yellow-50 text-yellow-700'
+              }`}
+            >
+              {formatTanggal(item.deadlineTindakLanjut)} {sisa < 0 ? `(Terlambat ${Math.abs(sisa)} hari)` : `(${sisa} hari lagi)`}
+            </span>
+          </td>
+          <td className="py-3 pr-4 text-gray-800 font-medium">{item.noSurat || '-'}</td>
+          <td className="py-3 pr-4 text-gray-700">{bidangTujuan}</td>
+          <td className="py-3 pr-4 text-gray-700">{item.status}</td>
+          <td className="py-3 pr-4 text-center">
+            <Link to={`/naskah/detail/${item.id}`} className="text-green-700 hover:underline text-xs font-medium">
+              Detail
+            </Link>
+          </td>
+        </tr>
+      );
+    });
+  })()}
+</tbody>
           </table>
         </div>
       </div>

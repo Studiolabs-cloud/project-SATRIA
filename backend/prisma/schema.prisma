@@ -113,13 +113,14 @@ model TindakLanjut {
   disposisiId        Int       @unique
   disposisi          Disposisi @relation(fields: [disposisiId], references: [id])
   uraianPekerjaan    String    @db.Text
-  buktiFiles         String?   @db.Text // JSON string array nama file
+  buktiFiles         String?   @db.Text
   sudahDisubmit      Boolean   @default(false)
-  hasilVerifikasi    String?   // 'selesai' | 'kembalikan' | null
+  hasilVerifikasi    String?
   catatanVerifikasi  String?   @db.Text
   createdById        Int
   createdBy          User      @relation("TindakLanjutCreatedBy", fields: [createdById], references: [id])
   createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 }
 
 model Notulen {

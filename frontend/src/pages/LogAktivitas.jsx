@@ -57,7 +57,7 @@ const [tanggalAkhir, setTanggalAkhir] = useState('');
 };
 
   return (
-    <div className="p-6">
+    <div className="h-full flex flex-col p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Log Histori Aktivitas</h1>
         <p className="text-gray-500 text-sm">Riwayat aktivitas pengguna dalam sistem (200 log terbaru)</p>
@@ -111,10 +111,10 @@ const [tanggalAkhir, setTanggalAkhir] = useState('');
       </p>
 
       {/* Tabel */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
+       <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden min-h-0">
+      <div className="h-full overflow-auto">
           <table className="w-full text-sm text-left">
-            <thead className="bg-gray-50 text-gray-500">
+            <thead className="sticky top-0 bg-gray-50 text-gray-500 z-10">
   <tr>
     <th className="py-3 px-4 font-medium">Tanggal</th>
     <th className="py-3 px-4 font-medium">Jam</th>

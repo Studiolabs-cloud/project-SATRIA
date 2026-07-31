@@ -1,16 +1,19 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-
-const DUMMY_SURAT_BELUM = [
-  { id: 1, tglTerima: '2026-07-10', noSurat: '045/DP/2026', hal: 'Permohonan koordinasi program sertifikasi tanah', asalSurat: 'Kementerian ATR/BPN', sifat: 'Segera', deadline: '2026-07-23', status: 'Menunggu Disposisi', bidangTujuan: null },
-  { id: 2, tglTerima: '2026-07-12', noSurat: '051/DP/2026', hal: 'Undangan rapat koordinasi penataan lahan', asalSurat: 'Sekretariat Daerah Kota Batam', sifat: 'Biasa', deadline: '2026-07-24', status: 'Proses', bidangTujuan: 'Penatagunaan & Pendayagunaan Tanah' },
-  { id: 3, tglTerima: '2026-07-14', noSurat: '058/DP/2026', hal: 'Pengaduan sengketa lahan warga', asalSurat: 'Warga Kelurahan Sungai Jodoh', sifat: 'Sangat Segera', deadline: '2026-07-25', status: 'Menunggu Disposisi', bidangTujuan: null },
-  { id: 4, tglTerima: '2026-07-08', noSurat: '039/DP/2026', hal: 'Permintaan data kepemilikan lahan', asalSurat: 'Dinas PUPR Kota Batam', sifat: 'Biasa', deadline: '2026-07-15', status: 'Proses', bidangTujuan: 'Pengawasan & Penanganan Masalah' },
-];
+import api from '../../services/api';
 
 export default function RekapBelum() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSifat, setFilterSifat] = useState('');
+  const [suratList, setSuratList] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    api.get('/naskah/untuk-saya')
+      .then((res) => setSuratList(res.data))
+      .catch((err) => console.error('Gagal ambil data surat:', err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const formatTanggal = (dateStr) =>
     new Date(dateStr).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -40,14 +43,30 @@ export default function RekapBelum() {
       : 'bg-blue-50 text-blue-700';
   };
 
-  const dataFiltered = DUMMY_SURAT_BELUM.filter((item) => {
-    const matchSearch =
-      item.noSurat.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.hal.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.asalSurat.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchSifat = filterSifat ? item.sifat === filterSifat : true;
-    return matchSearch && matchSifat;
-  }).sort((a, b) => new Date(a.deadline) - new Date(b.deadline));
+ // Surat dianggap "belum selesai" kalau belum ada tindak lanjut yang diverifikasi "selesai"
+const suratBelumSelesai = suratList.filter((s) => {
+  const sudahSelesai = s.disposisi?.some((d) => d.tindakLanjut?.hasilVerifikasi === 'selesai');
+  return !sudahSelesai;
+});
+
+const getStatusSurat = (item) => {
+  if (!item.disposisi || item.disposisi.length === 0) return 'Menunggu Disposisi';
+  const adaTindakLanjut = item.disposisi.some((d) => d.tindakLanjut);
+  return adaTindakLanjut ? 'Proses' : 'Menunggu Disposisi';
+};
+
+const dataFiltered = suratBelumSelesai.filter((item) => {
+  const matchSearch =
+    (item.noSurat || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.hal.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    item.asalSurat.toLowerCase().includes(searchTerm.toLowerCase());
+  const matchSifat = filterSifat ? item.sifat === filterSifat : true;
+  return matchSearch && matchSifat;
+}).sort((a, b) => {
+  if (!a.deadlineTindakLanjut) return 1;
+  if (!b.deadlineTindakLanjut) return -1;
+  return new Date(a.deadlineTindakLanjut) - new Date(b.deadlineTindakLanjut);
+});
 
   return (
     <div className="p-6">
@@ -86,9 +105,9 @@ export default function RekapBelum() {
         )}
       </div>
 
-      <p className="text-sm text-gray-500 mb-3">
-        Menampilkan {dataFiltered.length} dari {DUMMY_SURAT_BELUM.length} surat belum selesai
-      </p>
+    <p className="text-sm text-gray-500 mb-3">
+  Menampilkan {dataFiltered.length} dari {suratBelumSelesai.length} surat belum selesai
+</p>
 
       {/* Tabel */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
@@ -106,52 +125,55 @@ export default function RekapBelum() {
               </tr>
             </thead>
             <tbody>
-              {dataFiltered.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-400">
-                    Tidak ada surat yang cocok dengan filter
-                  </td>
-                </tr>
-              ) : (
-                dataFiltered.map((item) => {
-                  const sisa = sisaHari(item.deadline);
-                  return (
-                    <tr key={item.id} className="border-t border-gray-50 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-gray-800 font-medium whitespace-nowrap">{item.noSurat}</td>
-                      <td className="py-3 px-4 text-gray-700 max-w-xs">{item.hal}</td>
-                      <td className="py-3 px-4 text-gray-700">{item.asalSurat}</td>
-                      <td className="py-3 px-4">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${badgeSifat(item.sifat)}`}>
-                          {item.sifat}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${sisa < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
-                          {formatTanggal(item.deadline)}
-                          {sisa < 0 ? ` (Terlambat ${Math.abs(sisa)}h)` : ` (${sisa}h lagi)`}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className={`text-xs font-medium px-2 py-1 rounded-full ${badgeStatus(item.status)}`}>
-                          {item.status}
-                        </span>
-                      </td>
-                    <td className="py-3 px-4 text-center whitespace-nowrap">
-  <Link to={`/naskah/detail/${item.id}`} className="text-blue-700 hover:underline text-xs font-medium mr-3">
-    Detail
-  </Link>
-  <Link to={`/naskah/delegasi/${item.id}`} className="text-purple-600 hover:underline text-xs font-medium mr-3">
-    Delegasi
-  </Link>
-  <Link to={`/naskah/tindak-lanjut/${item.id}`} className="text-blue-600 hover:underline text-xs font-medium">
-    Tindak Lanjut
-  </Link>
-</td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
+  {loading ? (
+    <tr>
+      <td colSpan={7} className="py-8 text-center text-gray-400">Memuat data...</td>
+    </tr>
+  ) : dataFiltered.length === 0 ? (
+    <tr>
+      <td colSpan={7} className="py-8 text-center text-gray-400">
+        Tidak ada surat yang cocok dengan filter
+      </td>
+    </tr>
+  ) : (
+    dataFiltered.map((item) => {
+      const sisa = item.deadlineTindakLanjut ? sisaHari(item.deadlineTindakLanjut) : null;
+      const status = getStatusSurat(item);
+      return (
+        <tr key={item.id} className="border-t border-gray-50 hover:bg-gray-50">
+          <td className="py-3 px-4 text-gray-800 font-medium whitespace-nowrap">{item.noSurat || '-'}</td>
+          <td className="py-3 px-4 text-gray-700 max-w-xs">{item.hal}</td>
+          <td className="py-3 px-4 text-gray-700">{item.asalSurat}</td>
+          <td className="py-3 px-4">
+            <span className={`text-xs font-medium px-2 py-1 rounded-full ${badgeSifat(item.sifat)}`}>
+              {item.sifat}
+            </span>
+          </td>
+          <td className="py-3 px-4 whitespace-nowrap">
+            {item.deadlineTindakLanjut ? (
+              <span className={`text-xs font-medium px-2 py-1 rounded-full ${sisa < 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-600'}`}>
+                {formatTanggal(item.deadlineTindakLanjut)}
+                {sisa < 0 ? ` (Terlambat ${Math.abs(sisa)}h)` : ` (${sisa}h lagi)`}
+              </span>
+            ) : (
+              <span className="text-xs text-gray-400">-</span>
+            )}
+          </td>
+          <td className="py-3 px-4">
+            <span className={`text-xs font-medium px-2 py-1 rounded-full ${badgeStatus(status)}`}>
+              {status}
+            </span>
+          </td>
+          <td className="py-3 px-4 text-center whitespace-nowrap">
+            <Link to={`/naskah/detail/${item.id}`} className="text-green-700 hover:underline text-xs font-medium">
+              Detail
+            </Link>
+          </td>
+        </tr>
+      );
+    })
+  )}
+</tbody>
           </table>
         </div>
       </div>

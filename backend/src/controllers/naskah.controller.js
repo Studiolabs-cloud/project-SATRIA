@@ -182,3 +182,97 @@ exports.getSuratUntukSaya = async (req, res) => {
     res.status(500).json({ message: 'Gagal mengambil data surat' });
   }
 };
+  // POST buat delegasi untuk 1 disposisi
+exports.createDelegasi = async (req, res) => {
+  try {
+    const disposisiId = parseInt(req.params.disposisiId);
+    const { pelaksanaIds, dikerjakanLangsung } = req.body;
+
+    if (!dikerjakanLangsung && (!pelaksanaIds || pelaksanaIds.length === 0)) {
+      return res.status(400).json({ message: 'Pilih minimal 1 pelaksana, atau centang dikerjakan langsung' });
+    }
+
+    const delegasi = await prisma.delegasi.create({
+      data: {
+        disposisiId,
+        pelaksanaIds: JSON.stringify(dikerjakanLangsung ? [] : pelaksanaIds),
+        dikerjakanLangsung: !!dikerjakanLangsung,
+        createdById: req.user.id,
+      },
+    });
+
+    await logActivity(req.user.nama, req.user.role, `mendelegasikan surat (disposisi ID: ${disposisiId})`, req.user.id);
+
+    res.status(201).json({ message: 'Delegasi berhasil disimpan', delegasi });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Gagal menyimpan delegasi' });
+  }
+};
+
+// POST simpan tindak lanjut (pelaksana isi progres)
+exports.createTindakLanjut = async (req, res) => {
+  try {
+    const disposisiId = parseInt(req.params.disposisiId);
+    const { uraianPekerjaan } = req.body;
+    const buktiFiles = req.files ? req.files.map((f) => f.filename) : [];
+
+    if (!uraianPekerjaan || !uraianPekerjaan.trim()) {
+      return res.status(400).json({ message: 'Uraian pekerjaan wajib diisi' });
+    }
+
+    const existing = await prisma.tindakLanjut.findUnique({ where: { disposisiId } });
+    if (existing) {
+      return res.status(400).json({ message: 'Tindak lanjut untuk disposisi ini sudah ada' });
+    }
+
+    const tindakLanjut = await prisma.tindakLanjut.create({
+      data: {
+        disposisiId,
+        uraianPekerjaan,
+        buktiFiles: JSON.stringify(buktiFiles),
+        sudahDisubmit: true,
+        createdById: req.user.id,
+      },
+    });
+
+    await logActivity(req.user.nama, req.user.role, `mengisi tindak lanjut (disposisi ID: ${disposisiId})`, req.user.id);
+
+    res.status(201).json({ message: 'Tindak lanjut berhasil disimpan', tindakLanjut });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Gagal menyimpan tindak lanjut' });
+  }
+};
+
+// PUT verifikasi hasil tindak lanjut (pimpinan)
+exports.verifikasiTindakLanjut = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id); // id TindakLanjut
+    const { hasilVerifikasi, catatanVerifikasi } = req.body;
+
+    if (!['selesai', 'kembalikan'].includes(hasilVerifikasi)) {
+      return res.status(400).json({ message: 'Hasil verifikasi tidak valid' });
+    }
+    if (hasilVerifikasi === 'kembalikan' && (!catatanVerifikasi || !catatanVerifikasi.trim())) {
+      return res.status(400).json({ message: 'Catatan wajib diisi jika mengembalikan tindak lanjut' });
+    }
+
+    const tindakLanjut = await prisma.tindakLanjut.update({
+      where: { id },
+      data: { hasilVerifikasi, catatanVerifikasi: catatanVerifikasi || null },
+    });
+
+    await logActivity(
+      req.user.nama,
+      req.user.role,
+      hasilVerifikasi === 'selesai' ? 'memverifikasi tindak lanjut sebagai selesai' : 'mengembalikan tindak lanjut',
+      req.user.id
+    );
+
+    res.json({ message: 'Verifikasi berhasil disimpan', tindakLanjut });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Gagal menyimpan verifikasi' });
+  }
+};
